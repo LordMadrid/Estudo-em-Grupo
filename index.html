@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Análise do meu tempo</title>
+
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase compat scripts (não usar type=module) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive;
+      background: linear-gradient(135deg, #ffffff, #d9eaff);
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5em;
+      margin-top: 30px;
+    }
+    form {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffffcc;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto 0;
+    }
+    button:hover {
+      background-color: #357ab8;
+    }
+    #result, #groupResults {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #eee;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .suggestions {
+      margin-top: 30px;
+      padding: 15px;
+      background: #f0f5ff;
+      border-left: 5px solid #4a90e2;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Análise do meu tempo</h1>
+
+  <form id="reflectionForm">
+    <input type="text" id="userName" placeholder="Digite seu nome" required />
+    
+    <div class="question">
+      <label>1. Meus compromissos ocupam quanto tempo do meu dia?</label>
+      <select name="q1">
+        <option value="pro">Pouco tempo</option>
+        <option value="neutro">Moderado</option>
+        <option value="contra">Quase o dia todo</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>2. Consigo acrescentar mais uma responsabilidade sem desfalcar nos demais?</label>
+      <select name="q2">
+        <option value="pro">Sim, com tranquilidade</option>
+        <option value="neutro">Talvez</option>
+        <option value="contra">Não</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>3. Um novo projeto consumiria minha disponibilidade a ponto de impactar compromissos diários?</label>
+      <select name="q3">
+        <option value="pro">Não afetaria</option>
+        <option value="neutro">Afetaria pouco</option>
+        <option value="contra">Sim, afetaria bastante</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>4. Meu time está estruturado o suficiente ao ponto de eu me permitir participar de outro corpo/liga docente?</label>
+      <select name="q4">
+        <option value="pro">Totalmente estruturado</option>
+        <option value="neutro">Mais ou menos</option>
+        <option value="contra">Não está</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>5. Quanto tempo me sobra para lazer e descanso?</label>
+      <select name="q5">
+        <option value="pro">Tempo suficiente</option>
+        <option value="neutro">Pouco tempo</option>
+        <option value="contra">Quase nenhum tempo</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>6. Quanto da minha vida pessoal estou disposto a deixar de lado para focar no profissional?</label>
+      <select name="q6">
+        <option value="pro">Muito disposto</option>
+        <option value="neutro">Disposto moderadamente</option>
+        <option value="contra">Pouco ou nada disposto</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>7. Sinto que tenho clareza das minhas prioridades atuais?</label>
+      <select name="q7">
+        <option value="pro">Sim, muito claro</option>
+        <option value="neutro">Mais ou menos</option>
+        <option value="contra">Não tenho clareza</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>8. Meu nível de energia se mantém estável ao longo da semana?</label>
+      <select name="q8">
+        <option value="pro">Sim, estável</option>
+        <option value="neutro">Oscila bastante</option>
+        <option value="contra">Fico exausto frequentemente</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>9. Tenho apoio emocional e suporte social disponíveis?</label>
+      <select name="q9">
+        <option value="pro">Sim, total</option>
+        <option value="neutro">Moderado</option>
+        <option value="contra">Quase nenhum</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>10. Estou cuidando da minha saúde física e mental?</label>
+      <select name="q10">
+        <option value="pro">Sim</option>
+        <option value="neutro">De forma irregular</option>
+        <option value="contra">Não</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>11. As decisões que tomo no trabalho alinham-se com meus valores?</label>
+      <select name="q11">
+        <option value="pro">Sim, completamente</option>
+        <option value="neutro">Às vezes</option>
+        <option value="contra">Não muito</option>
+      </select>
+    </div>
+    <div class="question">
+      <label>12. Estou satisfeito com meu nível atual de realização pessoal?</label>
+      <select name="q12">
+        <option value="pro">Sim</option>
+        <option value="neutro">Parcialmente</option>
+        <option value="contra">Não</option>
+      </select>
+    </div>
+    <button type="button" onclick="analisar()">Analisar</button>
+    <button type="button" onclick="mostrarGrupo()">Mostrar Grupo</button>
+  </form>
+
+  <div id="result"></div>
+  <div id="groupResults"></div>
+
+  <script>
+    // Firebase config do usuário
+    const firebaseConfig = {
+      apiKey: "AIzaSyAX5stnsmfK9JOJN1W0Y7sD0gMUc0gdWu8",
+      authDomain: "analise-de-tempo-30fba.firebaseapp.com",
+      projectId: "analise-de-tempo-30fba",
+      storageBucket: "analise-de-tempo-30fba.firebasestorage.app",
+      messagingSenderId: "601772246312",
+      appId: "1:601772246312:web:ec37682f5ada7b86fe3c1d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function analisar() {
+      const nome = document.getElementById("userName").value.trim();
+      if (!nome) return alert("Digite seu nome.");
+
+      const selects = document.querySelectorAll("select");
+      let pro = 0, contra = 0;
+      selects.forEach(sel => {
+        if (sel.value === "pro") pro++;
+        if (sel.value === "contra") contra++;
+      });
+
+      await db.collection("respostas").doc(nome).set({
+        nome,
+        pro,
+        contra,
+        data: new Date()
+      });
+
+      document.getElementById("result").innerHTML = `
+        <h2>Resultado de ${nome}</h2>
+        <p>Prós: <strong>${pro}</strong><br>Contras: <strong>${contra}</strong></p>
+        ${contra > pro ? `<div class="suggestions"><strong>Sugestões:</strong><ul>
+          <li>Reavalie prioridades e evite sobrecarga</li>
+          <li>Cuide do seu tempo de descanso</li>
+        </ul></div>` : ''}
+      `;
+    }
+
+    async function mostrarGrupo() {
+      const snap = await db.collection("respostas").get();
+      let html = `<h2>Grupo</h2><table><tr><th>Nome</th><th>Prós</th><th>Contras</th></tr>`;
+      snap.forEach(doc => {
+        const d = doc.data();
+        html += `<tr><td>${d.nome}</td><td>${d.pro}</td><td>${d.contra}</td></tr>`;
+      });
+      html += "</table>";
+      document.getElementById("groupResults").innerHTML = html;
+    }
+  </script>
+</body>
+</html>
