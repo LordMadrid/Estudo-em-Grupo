@@ -1,15 +1,101 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Análise do meu tempo</title>
+  <title>Análise do Meu Tempo</title>
+  
+  <!-- Chart.js para os gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+      border-collapse: collapse;
+      padding: 8px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .pro { background-color: #e8daef; }
+    .contra { background-color: #f5c6cb; }
+    .suggestions {
+      background-color: #fff3cd;
+      padding: 10px;
+      margin-top: 20px;
+      border-left: 5px solid #ffc107;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Análise do Meu Tempo</h1>
+
+  <section>
+    <label for="userName"><strong>Seu nome:</strong></label>
+    <input type="text" id="userName" placeholder="Digite seu nome" />
+  </section>
+
+  <section>
+    <form name="reflectionForm">
+      <p><strong>Responda às questões abaixo:</strong></p>
+
+      <label>Você se sente produtivo no dia a dia?</label><br>
+      <select required>
+        <option value="">Selecione</option>
+        <option value="pro">Sim</option>
+        <option value="contra">Não</option>
+      </select><br><br>
+
+      <label>Você tem tempo livre suficiente?</label><br>
+      <select required>
+        <option value="">Selecione</option>
+        <option value="pro">Sim</option>
+        <option value="contra">Não</option>
+      </select><br><br>
+
+      <label>Você está satisfeito com sua rotina?</label><br>
+      <select required>
+        <option value="">Selecione</option>
+        <option value="pro">Sim</option>
+        <option value="contra">Não</option>
+      </select><br><br>
+
+      <button type="button" onclick="analisar()">Analisar</button>
+    </form>
+  </section>
+
+  <section id="result"></section>
+  <section id="groupResults"></section>
+
   <script>
+    // 🟡 Substitua pelos seus dados reais do Firebase
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
     function analisar() {
       const nome = document.getElementById("userName")?.value?.trim();
       if (!nome) {
@@ -130,16 +216,13 @@
       }
     }
 
-    
-  window.onload = function () {
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    window.db = db; // tornar global
-    exibirGrupo();
-  };
-
+    window.onload = function () {
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      window.db = db;
+      exibirGrupo();
+    };
   </script>
-</body>
-</html>
 
+</body>
 </html>
