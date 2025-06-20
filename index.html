@@ -219,31 +219,55 @@ function mostrarGrupo() {
     alert("Senha incorreta.");
     return;
   }
+
   db.collection("respostas").get().then(snapshot => {
+    if (snapshot.empty) return alert("Nenhum dado encontrado.");
+
     let totalPro = 0, totalContra = 0, participantes = 0;
+    let html = <h2>Análise do Grupo</h2><table><thead><tr><th>Nome</th>;
+
+    const perguntas = Object.values(snapshot.docs[0].data().respostas).map(r => r.pergunta);
+    perguntas.forEach(p => html += <th>${p}</th>);
+    html += </tr></thead><tbody>;
+
     snapshot.forEach(doc => {
-      const data = doc.data().respostas;
+      const { nome, respostas } = doc.data();
       let pro = 0, contra = 0;
-      for (let key in data) {
-        if (data[key].valor === "pro") pro++;
-        if (data[key].valor === "contra") contra++;
-      }
+      html += <tr><td>${nome}</td>;
+
+      Object.values(respostas).forEach(resp => {
+        html += <td>${resp.resposta}</td>;
+        if (resp.valor === "pro") pro++;
+        if (resp.valor === "contra") contra++;
+      });
+
       const total = pro + contra;
       if (total > 0) {
         totalPro += Math.round((pro * 100) / total);
         totalContra += Math.round((contra * 100) / total);
         participantes++;
       }
+
+      html += </tr>;
     });
-    if (participantes === 0) return alert("Nenhum dado encontrado.");
+
+    html += </tbody></table><canvas id="graficoGrupo" width="300" height="300" style="margin-top:30px;"></canvas>;
+
     const mediaPro = Math.round(totalPro / participantes);
-    const mediaContra = Math.round(totalContra / participantes);
-    alert(`Análise do Grupo:
+    const mediaContra = 100 - mediaPro;
 
-Total de participantes: ${participantes}
+    document.getElementById("result").innerHTML = html;
 
-• Média de satisfação: ${mediaPro}%
-• Média de insatisfação: ${mediaContra}%`);
+    new Chart(document.getElementById("graficoGrupo"), {
+      type: "pie",
+      data: {
+        labels: ["Satisfeito", "Insatisfeito"],
+        datasets: [{
+          data: [mediaPro, mediaContra],
+          backgroundColor: ["#2ecc71", "#e74c3c"]
+        }]
+      }
+    });
   });
 }
 
