@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 40px;
+      background: #f9fbff;
+      color: #333;
+    }
+    .ok {
+      color: green;
+      font-weight: bold;
+    }
+    .erro {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Teste de Conexão Firebase</h1>
+  <div id="status">Carregando...</div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAX5stnsmfK9JOJN1W0Y7sD0gMUc0gdWu8",
+      authDomain: "analise-de-tempo-30fba.firebaseapp.com",
+      projectId: "analise-de-tempo-30fba",
+      storageBucket: "analise-de-tempo-30fba.firebasestorage.app",
+      messagingSenderId: "601772246312",
+      appId: "1:601772246312:web:ec37682f5ada7b86fe3c1d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    db.collection("respostas").limit(1)
+      .get()
+      .then(snapshot => {
+        document.getElementById("status").innerHTML = "<p class='ok'>✅ Conectado ao Firebase com sucesso!</p>";
+      })
+      .catch(error => {
+        console.error("Erro na conexão:", error);
+        document.getElementById("status").innerHTML = "<p class='erro'>❌ Erro ao conectar ao Firebase: " + error.message + "</p>";
+      });
+  </script>
+</body>
+</html>
