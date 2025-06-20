@@ -178,29 +178,62 @@
 function analisar() {
   const userName = document.getElementById('userName').value.trim();
   if (!userName) return alert('Por favor, insira seu nome.');
+
   const selects = [...document.querySelectorAll("select")];
   let pro = 0, contra = 0;
   const respostas = {};
+  const contrasLista = [];
+
   selects.forEach((el, i) => {
     const val = el.value;
     const text = el.options[el.selectedIndex].text;
     const question = el.previousElementSibling.textContent;
     respostas['q' + (i+1)] = { pergunta: question, resposta: text, valor: val };
+
     if (val === 'pro') pro++;
-    if (val === 'contra') contra++;
+    if (val === 'contra') {
+      contra++;
+      contrasLista.push({ pergunta: question, resposta: text });
+    }
   });
+
   db.collection("respostas").add({
     nome: userName,
     data: new Date().toISOString(),
     respostas: respostas
   });
+
   const total = pro + contra;
   const pctPro = total ? Math.round((pro * 100) / total) : 0;
   const pctContra = 100 - pctPro;
+
+  // Tabela simples com pergunta e resposta
+  let tabelaHTML = `<table>
+    <thead><tr><th>Pergunta</th><th>Resposta</th></tr></thead><tbody>`;
+  Object.values(respostas).forEach(item => {
+    tabelaHTML += <tr><td>${item.pergunta}</td><td>${item.resposta}</td></tr>;
+  });
+  tabelaHTML += </tbody></table>;
+
+  // Sugestões com base nas respostas "contra"
+  let sugestoesHTML = "";
+  if (contrasLista.length > 0) {
+    sugestoesHTML = <div class="suggestions"><strong>Sugestões de melhoria:</strong><ul>;
+    contrasLista.forEach(item => {
+      sugestoesHTML += <li><strong>${item.pergunta}</strong>: Considere discutir com a equipe sobre melhorias neste ponto.</li>;
+    });
+    sugestoesHTML += </ul></div>;
+  }
+
+  // Exibir resultado final
   document.getElementById("result").innerHTML = `
     <h2>Resultado da Análise</h2>
     <p><strong>${pctPro}% Satisfeito</strong> vs <strong>${pctContra}% Insatisfeito</strong></p>
-    <canvas id="graficoPizza" width="300" height="300"></canvas>`;
+    <canvas id="graficoPizza" width="300" height="300"></canvas>
+    ${tabelaHTML}
+    ${sugestoesHTML}
+  `;
+
   new Chart(document.getElementById("graficoPizza"), {
     type: "pie",
     data: {
