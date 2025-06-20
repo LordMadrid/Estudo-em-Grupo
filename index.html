@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Análise do meu tempo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  
+  <script>
+    function analisar() {
+      const nome = document.getElementById("userName")?.value?.trim();
+      if (!nome) {
+        alert("Digite seu nome.");
+        return;
+      }
+
+      const form = document.forms['reflectionForm'];
+      const selects = [...form.elements].filter(e => e.tagName === 'SELECT');
+      let pro = 0, contra = 0;
+      const pros = [], contras = [];
+
+      selects.forEach((el) => {
+        const val = el.value;
+        const text = el.options[el.selectedIndex].text;
+        const question = el.previousElementSibling.textContent;
+        if (val === 'pro') { pro++; pros.push([question, text]); }
+        else if (val === 'contra') { contra++; contras.push([question, text]); }
+      });
+
+      window.db.collection("respostas").doc(nome).set({
+        nome,
+        pro,
+        contra,
+        respostas: { pros, contras },
+        data: new Date()
+      }).then(() => {
+        exibirResultado(nome, pro, contra, pros, contras);
+        exibirGrupo();
+      });
+    }
+
+    function exibirResultado(nome, pro, contra, pros, contras) {
+      const total = pro + contra;
+      const proPct = total ? Math.round(pro * 100 / total) : 0;
+      const contraPct = 100 - proPct;
+      const canvasID = "chart-" + Date.now();
+      const barID = "bar-" + Date.now();
+
+      let html = `
+        <h2>Resultado da Análise de ${nome}</h2>
+        <p><strong>${proPct}% Prós</strong> vs <strong>${contraPct}% Contras</strong></p>
+        <canvas id="${canvasID}" width="300" height="300"></canvas>
+        <canvas id="${barID}" width="400" height="250" style="margin-top:30px;"></canvas>
+        <table><tr><th>Tipo</th><th>Pergunta</th><th>Resposta</th></tr>`;
+
+      pros.forEach(([q, r]) => html += `<tr class="pro"><td>Pró</td><td>${q}</td><td>${r}</td></tr>`);
+      contras.forEach(([q, r]) => html += `<tr class="contra"><td>Contra</td><td>${q}</td><td>${r}</td></tr>`);
+      html += `</table>`;
+
+      if (contra > pro) {
+        html += `<div class="suggestions">
+          <strong>Sugestões baseadas na sua análise:</strong>
+          <ul>
+            <li>Considere delegar mais tarefas ou redistribuir sua agenda semanal.</li>
+            <li>Reavalie o equilíbrio entre vida pessoal e profissional.</li>
+            <li>Busque momentos de lazer para preservar sua energia emocional.</li>
+            <li>Fortaleça sua rede de apoio e momentos de autocuidado.</li>
+          </ul>
+        </div>`;
+      }
+
+      document.getElementById('result').innerHTML = html;
+
+      new Chart(document.getElementById(canvasID), {
+        type: 'pie',
+        data: {
+          labels: ['Prós', 'Contras'],
+          datasets: [{
+            data: [proPct, contraPct],
+            backgroundColor: ['#9b59b6', '#d291bc']
+          }]
+        }
+      });
+
+      new Chart(document.getElementById(barID), {
+        type: 'bar',
+        data: {
+          labels: ['Prós', 'Contras'],
+          datasets: [{
+            label: 'Impacto (%)',
+            data: [proPct, contraPct],
+            backgroundColor: ['#7d3c98', '#c39bd3']
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, max: 100 } }
+        }
+      });
+    }
+
+    function exibirGrupo() {
+      window.db.collection("respostas").get().then(snapshot => {
+        if (snapshot.empty) {
+          document.getElementById("groupResults").innerHTML = "";
+          return;
+        }
+        let html = `<h2>Relatório do Grupo</h2><table><tr><th>Nome</th><th>Prós</th><th>Contras</th></tr>`;
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          html += `<tr><td>${d.nome}</td><td>${d.pro}</td><td>${d.contra}</td></tr>`;
+        });
+        html += `</table><button onclick="limparDados()">Limpar dados</button>`;
+        document.getElementById("groupResults").innerHTML = html;
+      });
+    }
+
+    function limparDados() {
+      if (confirm("Deseja apagar todos os dados do Firebase?")) {
+        window.db.collection("respostas").get().then(snapshot => {
+          const batch = window.db.batch();
+          snapshot.forEach(doc => batch.delete(doc.ref));
+          return batch.commit();
+        }).then(() => {
+          alert("Todos os dados foram apagados.");
+          location.reload();
+        });
+      }
+    }
+
+    
+  window.onload = function () {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    window.db = db; // tornar global
+    exibirGrupo();
+  };
+
+  </script>
+</body>
+</html>
+
+</html>
