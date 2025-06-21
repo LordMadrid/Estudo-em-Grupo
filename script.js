@@ -129,7 +129,7 @@ function mostrarGrupo() {
       html += `</tr>`;
     });
 
-    html += `</tbody></table><canvas id="graficoGrupo" width="100" height="100" style="margin-top:30px;"></canvas>`;
+    html += `</tbody></table><canvas id="graficoGrupo" width="60" height="60" style="margin-top:30px;"></canvas>`;
 
     const mediaPro = Math.round(totalPro / participantes);
     const mediaContra = 100 - mediaPro;
