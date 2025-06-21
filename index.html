@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Avaliação Baja</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
+    body {
+      margin: 0;
+      font-family: 'Aptos Display', sans-serif;
+      background: linear-gradient(135deg, #2980b9, #6dd5fa);
+      color: #000;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas.particle {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: -1;
+      width: 100vw;
+      height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5em;
+      margin-top: 30px;
+      color: white;
+    }
+    form {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffffdd;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .question { margin-bottom: 20px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: block;
+      margin: 30px auto 0;
+    }
+    button:hover { background-color: #1c5980; }
+    #result {
+      overflow-x: auto;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+    th, td {
+      font-size: 14px;
+      white-space: nowrap;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #eee;
+    }
+    th { background-color: #f2f2f2; }
+    .suggestions {
+      margin-top: 30px;
+      padding: 15px;
+      background: #f0f5ff;
+      border-left: 5px solid #2980b9;
+      border-radius: 8px;
+    }
+  </style>
+  <script src="script.js" defer></script>
+</head>
+<body>
+<canvas class="particle" id="bgCanvas"></canvas>
+<h1>Avaliação Baja</h1>
+<form id="reflectionForm">
+  <div class="question"><label>Seu nome:</label>
+    <input type="text" id="userName" placeholder="Digite seu nome" required>
+  </div>
+  <div class="question"><label>1. Como você se sente com o projeto?</label>
+    <select name="q1"><option value="pro">Satisfeito</option><option value="contra">Pouco satisfeito</option><option value="neutro">Indiferente</option></select>
+  </div>
+  <div class="question"><label>2. Como você considera sua participação na equipe?</label>
+    <select name="q2"><option value="pro">Satisfeito</option><option value="contra">Pouco satisfeito</option><option value="neutro">Indiferente</option></select>
+  </div>
+  <div class="question"><label>3. Analisando de forma geral, o que você acha da frequência das reuniões?</label>
+    <select name="q3"><option value="pro">Muito boa</option><option value="contra">Poderia ser maior</option><option value="neutro">Normal</option></select>
+  </div>
+  <div class="question"><label>4. Como você se sente referente à liderança?</label>
+    <select name="q4"><option value="pro">Confortável</option><option value="contra">Poderia ser melhor</option><option value="neutro">Seguro</option></select>
+  </div>
+  <div class="question"><label>5. Como você avalia a comunicação entre os membros da equipe?</label>
+    <select name="q5"><option value="pro">Satisfeito</option><option value="contra">Pouco satisfeito</option><option value="neutro">Indiferente</option></select>
+  </div>
+  <div class="question"><label>6. Você sente que suas ideias são ouvidas e consideradas?</label>
+    <select name="q6"><option value="pro">Satisfeito</option><option value="contra">Pouco satisfeito</option><option value="neutro">Indiferente</option></select>
+  </div>
+  <div class="question"><label>7. O ambiente de trabalho é positivo e acolhedor?</label>
+    <select name="q7"><option value="pro">Satisfeito</option><option value="contra">Pouco satisfeito</option><option value="neutro">Indiferente</option></select>
+  </div>
+  <div class="question"><label>8. Você acredita que está se desenvolvendo profissionalmente neste projeto?</label>
+    <select name="q8"><option value="pro">Satisfeito</option><option value="contra">Pouco satisfeito</option><option value="neutro">Indiferente</option></select>
+  </div>
+  <div class="question">
+    <label>Deixe sua sugestão, algo que você acha que pode melhorar ou que sente falta dentro do Baja:</label>
+    <input type="text" id="sugestaoInput" placeholder="Digite sua sugestão aqui...">
+  </div>
+  <button type="button" onclick="analisar()">Analisar</button>
+  <div style="text-align:center; margin-top:20px;">
+    <button type="button" onclick="mostrarGrupo()">Mostrar Grupo</button>
+    <button type="button" onclick="limparDados()" style="background-color:#e74c3c;margin-left:10px;">Limpar Dados</button>
+  </div>
+</form>
+<div id="result"></div>
+</body>
+</html>
