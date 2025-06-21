@@ -25,7 +25,8 @@ function analisar() {
     const val = el.value;
     const text = el.options[el.selectedIndex].text;
     const question = el.previousElementSibling.textContent;
-    respostas['q' + (i+1)] = { pergunta: question, resposta: text, valor: val };
+    const nameAttr = el.getAttribute("name");
+    respostas[nameAttr] = { pergunta: question, resposta: text, valor: val };
 
     if (val === 'pro') pro++;
     if (val === 'contra') contrasLista.push({ pergunta: question, resposta: text });
