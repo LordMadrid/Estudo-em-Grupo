@@ -16,7 +16,7 @@ function analisar() {
   const sugestao = document.getElementById('sugestaoInput').value.trim();
   if (!userName) return alert('Por favor, insira seu nome.');
 
-  const selects = [...document.querySelectorAll("select")];
+  const selects = [...document.querySelectorAll("select[name^='q']")];
   let pro = 0, contra = 0;
   const respostas = {};
   const contrasLista = [];
