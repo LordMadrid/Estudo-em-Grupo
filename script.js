@@ -110,10 +110,11 @@ function mostrarGrupo() {
       let pro = 0, contra = 0;
       html += `<tr><td>${nome}</td>`;
 
-      Object.values(respostas).forEach(resp => {
-        html += `<td>${resp.resposta}</td>`;
-        if (resp.valor === "pro") pro++;
-        if (resp.valor === "contra") contra++;
+      perguntas.forEach(key => {
+        const resp = respostas[key];
+        html += `<td>${resp?.resposta || '-')</td>`;
+        if (resp?.valor === "pro") pro++;
+        if (resp?.valor === "contra") contra++;
       });
 
       const total = pro + contra;
