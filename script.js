@@ -101,7 +101,7 @@ function analisar() {
   }
 
   // agora renderizamos gráfico (esquerda) + tabela (direita) lado a lado
- document.getElementById("result").innerHTML = `
+document.getElementById("result").innerHTML = `
   <div class="dashboard-card">
     <h2>Resultado da Análise</h2>
     <div class="resumo-percentual">
@@ -228,26 +228,21 @@ function mostrarGrupo() {
     const mediaContra = 100 - mediaPro;
 
     // Monta tela final: gráfico à esquerda, blocos dos membros à direita
-    document.getElementById("result").innerHTML = `
-      <div class="dashboard-card">
-        <h2>Análise do Grupo</h2>
-        <div class="resumo-percentual">
-          Média do grupo: ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
-        </div>
+   document.getElementById("result").innerHTML = `
+  <div class="dashboard-card">
+    <h2>Análise do Grupo</h2>
+    <div class="resumo-percentual">
+      Média do grupo: ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
+    </div>
 
-        <div class="dashboard-flex">
-          <div class="dashboard-left">
-            <div class="grafico-wrapper">
-              <canvas id="graficoGrupo"></canvas>
-            </div>
-          </div>
+    <div class="grafico-wrapper" style="margin-bottom: 24px;">
+      <canvas id="graficoGrupo"></canvas>
+    </div>
 
-          <div class="dashboard-right">
-            ${blocosParticipantes}
-          </div>
-        </div>
-      </div>
-    `;
+    ${blocosParticipantes}
+  </div>
+`;
+
 
     // cria gráfico pizza da média do grupo
     new Chart(document.getElementById("graficoGrupo"), {
