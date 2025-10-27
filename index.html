@@ -61,34 +61,94 @@
     }
     button:hover { background-color: #1c5980; }
     #result {
-      overflow-x: auto;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
+     max-width: 850px;
+      margin: 40px auto 60px auto;
+    }
+
+    .dashboard-card {
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 24px 24px 32pz
+      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+      color: #111;
+      overflow-x: auto;
     }
+
+    .dashboard-card h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #111;
+      text-align: left;
+    }
+    
+    .dashboard-card p {
+      margin-top: 0;
+      font-size: 0.95rem;
+      font-weight: 500
+      color: #222;
+      text-align: left;
+    }
+
+    .grafico-wrapper {
+      width: 260px;
+      height: 260px;
+      margin: 16px auto 24px auto;
+      position: relative;
+    }
+    
     table {
       width: 100%;
-      margin-top: 30px;
       border-collapse: collapse;
+      min-width: 600px
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: #fff;
+      font-size: 0.9rem;
+      margin-top: 20px;
     }
-    th, td {
-      font-size: 14px;
+
+    th {
+      background-color: #00b85c;
+      color: #fff;
+      texto-align: left;
+      padding: 12px 16px
+        fot-weight: 600;
       white-space: nowrap;
-      padding: 12px;
-      text-align: left;
-      border: 1px solid #eee;
+      border-bottom: 1px solid #00964d;
     }
-    th { background-color: #f2f2f2; }
+    
+    td {
+      padding: 12px 16px
+      border-bottom: 1px solid #eee;
+      color: #222;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    tr: nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
     .suggestions {
       margin-top: 30px;
-      padding: 15px;
-      background: #f0f5ff;
-      border-left: 5px solid #2980b9;
+      padding: 15px 16px;
+      background: #fffbe6
+      border-left: 5px solid #ffdd57;
       border-radius: 8px;
+      font-size: 0.9rem;
     }
+
+    .suggestions ul {
+      margin: 8px 0 0 16px;
+    }
+    
   </style>
   <script src="script.js" defer></script>
 </head>
