@@ -13,333 +13,408 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <!-- Fonte e estilos visuais -->
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
+ <style>
+@import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
 
-    body {
-      margin: 0;
-      font-family: 'Aptos Display', sans-serif;
-      background: linear-gradient(135deg, #00ff80, #001a00);
-      color: #000;
-      overflow-x: hidden;
-      position: relative;
-    }
+body {
+  margin: 0;
+  font-family: 'Aptos Display', sans-serif;
+  background: #007a2a; /* verde liso */
+  color: #000;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
 
-    canvas.particle {
-      position: fixed;
-      top: 0; left: 0;
-      z-index: -1;
-      width: 100vw;
-      height: 100vh;
-    }
+/* fundo animado (se quiser manter pode deixar sem cor) */
+canvas.particle {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+}
 
-    h1 {
-      text-align: center;
-      font-size: 2.5em;
-      margin-top: 30px;
-      color: white;
-    }
+/* Centralização vertical/horizontal do lobby */
+#lobbyWrapper {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    /* Card base reutilizável (fundo branco arredondado) */
-    .card-branco {
-      max-width: 700px;
-      margin: 40px auto;
-      background: #ffffffdd;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    }
+/* Card branco de lobby */
+.card-branco {
+  width: 100%;
+  background: #ffffffdd;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.25);
+  padding: 20px;
+  color: #000;
+}
 
-    /* Formulário do questionário (mesmo estilo do card antigo) */
-    form {
-      max-width: 700px;
-      margin: auto;
-      background: #ffffffdd;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    }
+.lobby-card {
+  text-align: left;
+}
 
-    .question { margin-bottom: 20px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; color:#000; }
+.lobby-title {
+  text-align: center;
+  font-size: 2em;
+  color: #000;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
 
-    select, input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-family: inherit;
-    }
+.lobby-desc {
+  font-size: 1rem;
+  color: #000;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
 
-    button {
-      background-color: #2980b9;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      display: inline-block;
-    }
+.lobby-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
 
-    button:hover { background-color: #1c5980; }
+.lobby-label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  color: #000;
+}
 
-    /* Área onde mostramos resultado/análise */
-    #result {
-      max-width: 850px;
-      margin: 40px auto 60px auto;
-    }
+.lobby-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  background-color: #fff;
+}
 
-    /* Cartão branco do dashboard/resultados */
-    .dashboard-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px 24px 32px;
-      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-      color: #111;
-      overflow-x: auto;
-    }
+/* sumir tela do lobby quando troca */
+#questionarioSection {
+  max-width: 700px;
+  margin: 40px auto;
+}
 
-    .dashboard-card h2 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-top: 0;
-      margin-bottom: 12px;
-      color: #111;
-      text-align: left;
-    }
+/* título da etapa de perguntas */
+.questionario-title {
+  text-align: center;
+  font-size: 2.2em;
+  margin-top: 0;
+  color: #fff;
+}
 
-    .resumo-percentual {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #222;
-      margin-bottom: 12px;
-    }
+/* formulário branco */
+form {
+  max-width: 700px;
+  margin: auto;
+  background: #ffffffdd;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.25);
+}
 
-    /* Gráfico com tamanho controlado */
-    .grafico-wrapper {
-      width: 260px;
-      height: 260px;
-      position: relative;
-      margin: 12px auto 24px auto; /* centraliza */
-    }
+.question { margin-bottom: 20px; }
+label { font-weight: bold; display: block; margin-bottom: 5px; color:#000; }
 
-    /* Tabela estilo planilha */
-    .table-wrapper {
-      width: 100%;
-      max-width: 100%;
-      overflow-x: auto;
-    }
+select, input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  background-color: #fff;
+}
 
-    .survey-table {
-      border-collapse: separate;
-      border-spacing: 0;
-      width: 100%;
-      min-width: 260px;
-      font-size: 0.9rem;
-      color: #222;
-    }
+/* botões */
+.main-btn {
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  min-width: 230px;
+  text-align: center;
+  font-family: inherit;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
 
-    .survey-table th,
-    .survey-table td {
-      text-align: left;
-      padding: 10px 12px;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      vertical-align: top;
-    }
+.main-btn.azul { background-color: #2980b9; }
+.main-btn.azul:hover { background-color: #1c5980; }
 
-    .survey-table th.pergunta-col,
-    .survey-table td.pergunta-col {
-      font-weight: 600;
-      background-color: #f9f9f9;
-      width: 55%;
-      max-width: 55%;
-      white-space: normal;
-    }
+.main-btn.cinza { background-color: #555; }
+.main-btn.cinza:hover { background-color: #333; }
 
-    .survey-table td.resposta-col {
-      white-space: normal;
-      font-weight: 500;
-    }
+.main-btn.vermelho { background-color: #e74c3c; }
+.main-btn.vermelho:hover { background-color: #c0392b; }
 
-    .survey-table thead th {
-      background-color: #f9f9f9;
-      color: #111;
-      border: 1px solid #ddd;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
+/* RESULTADO DASHBOARD */
+#result {
+  max-width: 850px;
+  margin: 40px auto 60px auto;
+}
 
-    /* cantos arredondados */
-    .survey-table tr:first-child th:first-child {
-      border-top-left-radius: 10px;
-    }
-    .survey-table tr:first-child th:last-child {
-      border-top-right-radius: 10px;
-    }
-    .survey-table tr:last-child td:first-child {
-      border-bottom-left-radius: 10px;
-    }
-    .survey-table tr:last-child td:last-child {
-      border-bottom-right-radius: 10px;
-    }
+.dashboard-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 24px 32px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+  color: #111;
+  overflow-x: auto;
+}
 
-    /* caixa de sugestões (pontos de atenção) */
-    .suggestions {
-      margin-top: 24px;
-      padding: 15px 16px;
-      background: #fffbe6;
-      border: 1px solid #ffdd57;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      line-height: 1.4;
-    }
-    .suggestions strong {
-      font-weight: 600;
-    }
-    .suggestions ul {
-      margin: 8px 0 0 16px;
-      padding: 0;
-    }
-    .suggestions li {
-      margin-bottom: 6px;
-    }
+.dashboard-card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #111;
+  text-align: left;
+}
 
-    /* botões do lobby lado a lado */
-    .lobby-btns {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-  </style>
+.resumo-percentual {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+/* gráfico */
+.grafico-wrapper {
+  width: 260px;
+  height: 260px;
+  position: relative;
+  margin: 12px auto 24px auto;
+  background: #fff;
+}
+
+/* tabela estilo planilha */
+.table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.survey-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 260px;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.survey-table th,
+.survey-table td {
+  text-align: left;
+  padding: 10px 12px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.survey-table th.pergunta-col,
+.survey-table td.pergunta-col {
+  font-weight: 600;
+  background-color: #f9f9f9;
+  width: 55%;
+  max-width: 55%;
+  white-space: normal;
+}
+
+.survey-table td.resposta-col {
+  white-space: normal;
+  font-weight: 500;
+}
+
+.survey-table thead th {
+  background-color: #f9f9f9;
+  color: #111;
+  border: 1px solid #ddd;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.survey-table tr:first-child th:first-child { border-top-left-radius: 10px; }
+.survey-table tr:first-child th:last-child { border-top-right-radius: 10px; }
+.survey-table tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+.survey-table tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+
+.suggestions {
+  margin-top: 24px;
+  padding: 15px 16px;
+  background: #fffbe6;
+  border: 1px solid #ffdd57;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.suggestions strong { font-weight: 600; }
+.suggestions ul {
+  margin: 8px 0 0 16px;
+  padding: 0;
+}
+.suggestions li { margin-bottom: 6px; }
+</style>
 
   <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- fundo animado -->
+  <!-- fundo verde sólido -->
   <canvas class="particle" id="bgCanvas"></canvas>
 
-  <!-- ========== 1) LOBBY INICIAL / PORTAL ========== -->
-  <section id="lobbySection" class="card-branco" style="font-family:'Aptos Display',sans-serif;">
-    <h1 style="text-align:center; font-size:2em; color:#000; margin-top:0;">
-      Avaliação Baja
-    </h1>
+  <!-- 1) Lobby centralizado -->
+  <section id="lobbyWrapper">
+    <section id="lobbySection" class="card-branco lobby-card">
+      <h1 class="lobby-title">
+        Avaliação Baja
+      </h1>
 
-    <p style="font-size:1rem; color:#000; line-height:1.4; margin-bottom:20px;">
-      Antes de começar, você prefere se identificar ou responder de forma anônima?
-    </p>
+      <p class="lobby-desc">
+        Antes de começar, você prefere se identificar ou responder de forma anônima?
+      </p>
 
-    <!-- Botões de escolha -->
-    <div class="lobby-btns">
-      <button type="button"
-              class="escolhaIdentBtn"
-              style="background-color:#2980b9;"
-              onclick="definirIdentificacao(true)">
-        Quero me identificar
-      </button>
+      <!-- Botões de escolha -->
+      <div class="lobby-btns">
+        <button type="button"
+                class="escolhaIdentBtn main-btn azul"
+                onclick="definirIdentificacao(true)">
+          Quero me identificar
+        </button>
 
-      <button type="button"
-              class="escolhaIdentBtn"
-              style="background-color:#555;"
-              onclick="definirIdentificacao(false)">
-        Quero ficar anônimo
-      </button>
-    </div>
+        <button type="button"
+                class="escolhaIdentBtn main-btn cinza"
+                onclick="definirIdentificacao(false)">
+          Quero ficar anônimo
+        </button>
+      </div>
 
-    <!-- Campo para nome (só aparece se a pessoa escolher se identificar) -->
-    <div id="nomeWrapper" style="display:none; margin-top:10px;">
-      <label style="font-weight:bold; display:block; margin-bottom:5px; color:#000;">
-        Seu nome:
-      </label>
-      <input type="text"
-             id="lobbyNomeInput"
-             placeholder="Digite seu nome"
-             style="width:100%; padding:8px; font-size:16px; border-radius:8px; border:1px solid #ccc; font-family:inherit;">
-    </div>
+      <!-- Campo para nome (só aparece se a pessoa escolher se identificar) -->
+      <div id="nomeWrapper" style="display:none; margin-top:10px;">
+        <label class="lobby-label">
+          Seu nome:
+        </label>
+        <input type="text"
+               id="lobbyNomeInput"
+               placeholder="Digite seu nome"
+               class="lobby-input">
+      </div>
 
-    <!-- Ir para o questionário -->
-    <div style="text-align:center; margin-top:24px;">
-      <button type="button"
-              style="background-color:#2980b9;"
-              onclick="entrarNoQuestionario()">
-        Começar questionário
-      </button>
-    </div>
+      <!-- Ir para o questionário -->
+      <div style="text-align:center; margin-top:24px;">
+        <button type="button"
+                class="main-btn azul"
+                onclick="entrarNoQuestionario()">
+          Começar questionário
+        </button>
+      </div>
+    </section>
   </section>
 
-
-  <!-- ========== 2) QUESTIONÁRIO / PESQUISA ========== -->
+  <!-- 2) Questionário -->
   <section id="questionarioSection" style="display:none;">
-    <h1>Avaliação Baja</h1>
+    <h1 class="questionario-title">Avaliação Baja</h1>
 
     <form id="reflectionForm">
-      <!-- Campo "Seu nome" foi removido -->
-
-      <div class="question"><label>1. Como você se sente com o projeto?</label>
-        <select name="q1">
+      <div class="question">
+        <label>1. Como você se sente com o projeto?</label>
+        <select name="q1" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>2. Como você considera sua participação na equipe?</label>
-        <select name="q2">
+      <div class="question">
+        <label>2. Como você considera sua participação na equipe?</label>
+        <select name="q2" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>3. Analisando de forma geral, o que você acha da frequência das reuniões?</label>
-        <select name="q3">
+      <div class="question">
+        <label>3. Analisando de forma geral, o que você acha da frequência das reuniões?</label>
+        <select name="q3" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>4. Como você se sente referente à liderança?</label>
-        <select name="q4">
+      <div class="question">
+        <label>4. Como você se sente referente à liderança?</label>
+        <select name="q4" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>5. Como você avalia a comunicação entre os membros da equipe?</label>
-        <select name="q5">
+      <div class="question">
+        <label>5. Como você avalia a comunicação entre os membros da equipe?</label>
+        <select name="q5" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>6. Você sente que suas ideias são ouvidas e consideradas?</label>
-        <select name="q6">
+      <div class="question">
+        <label>6. Você sente que suas ideias são ouvidas e consideradas?</label>
+        <select name="q6" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>7. O ambiente de trabalho é positivo e acolhedor?</label>
-        <select name="q7">
+      <div class="question">
+        <label>7. O ambiente de trabalho é positivo e acolhedor?</label>
+        <select name="q7" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
-      <div class="question"><label>8. Você acredita que está se desenvolvendo profissionalmente neste projeto?</label>
-        <select name="q8">
+      <div class="question">
+        <label>8. Você acredita que está se desenvolvendo profissionalmente neste projeto?</label>
+        <select name="q8" required>
+          <option value="">Selecione...</option>
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
+          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -348,16 +423,19 @@
         <input type="text" id="sugestaoInput" placeholder="Digite sua sugestão aqui...">
       </div>
 
-      <button type="button" onclick="analisar()">Analisar</button>
+      <div style="text-align:center; margin-top:30px; display:flex; flex-direction:column; gap:12px; align-items:center;">
+        <button type="button" class="main-btn azul" onclick="analisar()">Analisar minhas respostas</button>
 
-      <div style="text-align:center; margin-top:20px;">
-        <button type="button" onclick="mostrarGrupo()">Mostrar Grupo</button>
-        <button type="button" onclick="limparDados()" style="background-color:#e74c3c;margin-left:10px;">Limpar Dados</button>
+        <button type="button" class="main-btn azul" onclick="mostrarGrupo()">Mostrar Grupo (senha)</button>
+
+        <button type="button" class="main-btn vermelho" onclick="limparDadosProtegido()">Limpar Dados (senha)</button>
       </div>
     </form>
 
-    <!-- Resultado / Dashboard aparece aqui -->
+    <!-- onde aparece o dashboard -->
     <div id="result"></div>
   </section>
+
+  <script src="script.js" defer></script>
 </body>
 </html>
