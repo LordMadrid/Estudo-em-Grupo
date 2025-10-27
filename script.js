@@ -2,7 +2,7 @@
 // ESTADO GLOBAL
 // =========================
 let nomeDoParticipante = "Anônimo";
-let querSeIdentificar = null; // null = ainda não escolheu
+let querSeIdentificar = null; // null = ainda não escolheu, true = quer se identificar, false = anônimo
 
 
 // =========================
@@ -21,37 +21,66 @@ const db = firebase.firestore();
 
 
 // =========================
-// CONTROLE DO LOBBY
+// LOBBY: ESCOLHA DE IDENTIFICAÇÃO
 // =========================
 
-// usuário clicou "Quero me identificar" OU "Quero ficar anônimo"
 function definirIdentificacao(valor) {
-  // valor = true (identificar) ou false (anônimo)
+  // valor = true (quer se identificar) ou false (anônimo)
   querSeIdentificar = valor;
 
   const nomeWrapper = document.getElementById("nomeWrapper");
+  const nomeInput = document.getElementById("lobbyNomeInput");
+  const btnComecar = document.getElementById("btnComecar");
+
+  const btnIdentificar = document.getElementById("btnIdentificar");
+  const btnAnonimo = document.getElementById("btnAnonimo");
+
+  // tira estado ativo dos dois
+  btnIdentificar.classList.remove("ativo");
+  btnAnonimo.classList.remove("ativo");
 
   if (querSeIdentificar === true) {
-    // precisa mostrar campo nome
+    // mostrar campo nome e esconder botão até digitar
     nomeWrapper.style.display = "block";
+    btnIdentificar.classList.add("ativo");
+
+    btnComecar.style.display = "none";
+
+    if (nomeInput) {
+      nomeInput.value = "";
+    }
   } else {
-    // anônimo: esconde campo e limpa
+    // modo anônimo
     nomeWrapper.style.display = "none";
-    const nomeInput = document.getElementById("lobbyNomeInput");
-    if (nomeInput) nomeInput.value = "";
+    btnAnonimo.classList.add("ativo");
+
+    // pode começar direto
+    btnComecar.style.display = "inline-block";
   }
 }
 
-// botão "Começar questionário"
+// chamada quando o usuário digita o nome
+function atualizarDisponibilidadeEntrada() {
+  const nomeInput = document.getElementById("lobbyNomeInput");
+  const btnComecar = document.getElementById("btnComecar");
+
+  if (querSeIdentificar === true) {
+    if (nomeInput.value.trim() !== "") {
+      btnComecar.style.display = "inline-block";
+    } else {
+      btnComecar.style.display = "none";
+    }
+  }
+}
+
 function entrarNoQuestionario() {
-  // precisa ter escolhido uma das duas opções
+  // segurança extra: garantir escolha
   if (querSeIdentificar === null) {
     alert("Escolha se você quer se identificar ou responder como anônimo.");
     return;
   }
 
   if (querSeIdentificar === true) {
-    // precisa ter preenchido o nome
     const nomeDigitado = document.getElementById("lobbyNomeInput").value.trim();
     if (!nomeDigitado) {
       alert("Por favor, insira seu nome.");
@@ -62,8 +91,23 @@ function entrarNoQuestionario() {
     nomeDoParticipante = "Anônimo";
   }
 
+  // troca de tela
   document.getElementById("lobbyWrapper").style.display = "none";
   document.getElementById("questionarioSection").style.display = "block";
+
+  window.scrollTo(0, 0);
+}
+
+function voltarLobby() {
+  // volta pro lobby
+  document.getElementById("questionarioSection").style.display = "none";
+  document.getElementById("lobbyWrapper").style.display = "flex";
+
+  // limpa resultado visível (por segurança)
+  const resultDiv = document.getElementById("result");
+  if (resultDiv) {
+    resultDiv.innerHTML = "";
+  }
 
   window.scrollTo(0, 0);
 }
@@ -78,16 +122,16 @@ function validarFormulario() {
   for (const sel of selects) {
     const valor = sel.value.trim();
 
-    // se ficou vazio (não escolheu) -> bloqueia
+    // vazio = não respondeu
     if (valor === "") {
       alert("Por favor, responda todas as perguntas antes de continuar.");
       sel.focus();
       return false;
     }
 
-    // se escolheu "nenhum" -> bloqueia
+    // "nenhum" = não pode
     if (valor === "nenhum") {
-      alert("Uma ou mais perguntas foram marcadas como 'Nenhum / Prefiro não responder'. Todas as perguntas são obrigatórias.");
+      alert("Todas as perguntas são obrigatórias. Não é permitido 'Prefiro não responder'.");
       sel.focus();
       return false;
     }
@@ -98,10 +142,10 @@ function validarFormulario() {
 
 
 // =========================
-// ANALISAR (RESULTADO INDIVIDUAL)
+// ANALISAR RESPOSTA INDIVIDUAL
 // =========================
 function analisar() {
-  // trava se não respondeu tudo corretamente
+  // só prossegue se todas as perguntas estão válidas
   if (!validarFormulario()) {
     return;
   }
@@ -138,17 +182,19 @@ function analisar() {
     valor: "neutro"
   };
 
-  // salva respostas no Firestore com o nome escolhido / Anônimo
+  // salva no Firestore
   db.collection("respostas").add({
     nome: nomeDoParticipante,
     data: new Date().toISOString(),
     respostas: respostas
   });
 
+  // % satisfeito / insatisfeito
   const total = pro + contra;
   const pctPro = total ? Math.round((pro * 100) / total) : 0;
   const pctContra = 100 - pctPro;
 
+  // monta linhas da tabela
   const linhasTabela = Object.values(respostas).map(item => `
     <tr>
       <td class="pergunta-col">${item.pergunta}</td>
@@ -156,6 +202,7 @@ function analisar() {
     </tr>
   `).join('');
 
+  // pontos de atenção (respostas "contra")
   const sugestoesHTML = contrasLista.length > 0
     ? `
       <div class="suggestions">
@@ -169,6 +216,7 @@ function analisar() {
     `
     : "";
 
+  // render do dashboard individual
   document.getElementById("result").innerHTML = `
     <div class="dashboard-card">
       <h2>Resultado Individual</h2>
@@ -199,6 +247,7 @@ function analisar() {
     </div>
   `;
 
+  // gráfico do participante
   new Chart(document.getElementById("graficoPizza"), {
     type: "pie",
     data: {
@@ -226,7 +275,7 @@ function analisar() {
 
 
 // =========================
-// MOSTRAR GRUPO (com senha)
+// MOSTRAR GRUPO (senha obrigatória)
 // =========================
 function mostrarGrupo() {
   const senha = prompt("Digite a senha para acessar os dados do grupo:");
@@ -243,6 +292,7 @@ function mostrarGrupo() {
 
     let totalPro = 0, totalContra = 0, participantes = 0;
 
+    // pega estrutura das perguntas
     const respostasObjExemplo = snapshot.docs[0].data().respostas;
     const perguntasKeys = Object
       .keys(respostasObjExemplo)
@@ -347,7 +397,7 @@ function mostrarGrupo() {
 
 
 // =========================
-// LIMPAR DADOS (com senha)
+// LIMPAR DADOS (senha obrigatória)
 // =========================
 function limparDadosProtegido() {
   const senha = prompt("Digite a senha para APAGAR TODOS os dados:");
