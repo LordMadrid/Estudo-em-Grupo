@@ -20,7 +20,7 @@ function analisar() {
   const respostas = {};
   const contrasLista = [];
 
-  // Lê as respostas marcadas no formulário
+  // coleta respostas
   selects.forEach((el) => {
     const val = el.value;
     const text = el.options[el.selectedIndex].text;
@@ -40,112 +40,102 @@ function analisar() {
     }
   });
 
-  // adicionar sugestão livre
+  // sugestão aberta
   respostas["sugestao"] = {
     pergunta: "Sugestão de melhoria",
     resposta: sugestao || "(sem sugestão)",
     valor: "neutro"
   };
 
-  // salvar no banco
+  // salva no Firestore
   db.collection("respostas").add({
     nome: userName,
     data: new Date().toISOString(),
     respostas: respostas
   });
 
+  // calcula % de satisfação individual
   const total = pro + contra;
   const pctPro = total ? Math.round((pro * 100) / total) : 0;
   const pctContra = 100 - pctPro;
 
-  // monta tabela tipo planilha (Pergunta | Resposta)
-  let tabelaLinhas = "";
-  Object.values(respostas).forEach(item => {
-    tabelaLinhas += `
-      <tr>
-        <td class="pergunta-col">${item.pergunta}</td>
-        <td class="resposta-col">${item.resposta}</td>
-      </tr>
-    `;
-  });
+  // monta linhas da tabela Pergunta | Resposta
+  const linhasTabela = Object.values(respostas).map(item => `
+    <tr>
+      <td class="pergunta-col">${item.pergunta}</td>
+      <td class="resposta-col">${item.resposta}</td>
+    </tr>
+  `).join('');
 
-  const tabelaHTML = `
-    <div class="table-wrapper">
-      <table class="survey-table">
-        <thead>
-          <tr>
-            <th class="pergunta-col">Pergunta</th>
-            <th>Resposta</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tabelaLinhas}
-        </tbody>
-      </table>
+  // bloco de sugestões (só se tiver "contra")
+  const sugestoesHTML = contrasLista.length > 0 ? `
+    <div class="suggestions">
+      <strong>Pontos de atenção:</strong>
+      <ul>
+        ${contrasLista.map(item => `
+          <li><strong>${item.pergunta}</strong>: "${item.resposta}"</li>
+        `).join('')}
+      </ul>
+    </div>
+  ` : "";
+
+  // renderiza resultado no card
+  document.getElementById("result").innerHTML = `
+    <div class="dashboard-card">
+      <h2>Resultado Individual</h2>
+      <div class="resumo-percentual">
+        ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito
+      </div>
+
+      <!-- gráfico agora vem primeiro -->
+      <div class="grafico-wrapper" style="margin: 12px auto 24px auto;">
+        <canvas id="graficoPizza"></canvas>
+      </div>
+
+      <!-- tabela de respostas -->
+      <div class="table-wrapper">
+        <table class="survey-table">
+          <thead>
+            <tr>
+              <th class="pergunta-col">Pergunta</th>
+              <th>Resposta</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${linhasTabela}
+          </tbody>
+        </table>
+      </div>
+
+      ${sugestoesHTML}
     </div>
   `;
 
-  // bloco de sugestões (somente se teve "contra")
-  let sugestoesHTML = "";
-  if (contrasLista.length > 0) {
-    sugestoesHTML = `
-      <div class="suggestions">
-        <strong>Pontos de atenção do participante:</strong>
-        <ul>
-          ${contrasLista.map(item => `
-            <li><strong>${item.pergunta}</strong>: "${item.resposta}" — vale conversar e ajustar.</li>
-          `).join("")}
-        </ul>
-      </div>
-    `;
-  }
-
-  // agora renderizamos gráfico (esquerda) + tabela (direita) lado a lado
-document.getElementById("result").innerHTML = `
-  <div class="dashboard-card">
-    <h2>Resultado da Análise</h2>
-    <div class="resumo-percentual">
-      ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito
-    </div>
-
-    <!-- gráfico agora vem antes da tabela -->
-    <div class="grafico-wrapper" style="margin-bottom: 24px; margin-top: 12px;">
-      <canvas id="graficoPizza"></canvas>
-    </div>
-
-    <!-- tabela de respostas logo abaixo -->
-    <div class="table-wrapper">
-      <table class="survey-table">
-        <thead>
-          <tr>
-            <th class="pergunta-col">Pergunta</th>
-            <th>Resposta</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${Object.values(respostas).map(item => `
-            <tr>
-              <td class="pergunta-col">${item.pergunta}</td>
-              <td class="resposta-col">${item.resposta}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    ${contrasLista.length > 0 ? `
-      <div class="suggestions">
-        <strong>Pontos de atenção:</strong>
-        <ul>
-          ${contrasLista.map(item => `
-            <li><strong>${item.pergunta}</strong>: "${item.resposta}"</li>
-          `).join('')}
-        </ul>
-      </div>
-    ` : ""}
-  </div>
-`;
-
+  // cria o gráfico de pizza (pequeno e centralizado)
+  new Chart(document.getElementById("graficoPizza"), {
+    type: "pie",
+    data: {
+      labels: ["Satisfeito", "Insatisfeito"],
+      datasets: [{
+        data: [pctPro, pctContra],
+        backgroundColor: ["#2ecc71", "#e74c3c"]
+      }]
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            boxWidth: 12,
+            font: { size: 12 }
+          }
+        }
+      }
+    }
+  });
+}
 
 function mostrarGrupo() {
   const senha = prompt("Digite a senha para acessar os dados do grupo:");
@@ -162,23 +152,23 @@ function mostrarGrupo() {
 
     let totalPro = 0, totalContra = 0, participantes = 0;
 
-    // Pegar as chaves das perguntas (q1..q8 + sugestao) na ordem certa
+    // vamos usar o primeiro doc pra saber quais perguntas existem
     const respostasObjExemplo = snapshot.docs[0].data().respostas;
+
     const perguntasKeys = Object
       .keys(respostasObjExemplo)
       .filter(k => k !== 'sugestao')
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
       .concat('sugestao');
 
-    // Para montar média geral de satisfação
-    // e para montar tabelas individuais por pessoa
+    // gerar bloco de cada participante com tabela Pergunta | Resposta
     let blocosParticipantes = "";
 
     snapshot.forEach(doc => {
       const { nome, respostas } = doc.data();
       let pro = 0, contra = 0;
 
-      // monta linhas dessa pessoa
+      // monta tabela vertical dessa pessoa
       let linhasPessoa = "";
       perguntasKeys.forEach(key => {
         const resp = respostas[key];
@@ -194,10 +184,10 @@ function mostrarGrupo() {
         if (resp.valor === "contra") contra++;
       });
 
-      const total = pro + contra;
-      if (total > 0) {
-        totalPro += Math.round((pro * 100) / total);
-        totalContra += Math.round((contra * 100) / total);
+      const totalLocal = pro + contra;
+      if (totalLocal > 0) {
+        totalPro += Math.round((pro * 100) / totalLocal);
+        totalContra += Math.round((contra * 100) / totalLocal);
         participantes++;
       }
 
@@ -223,28 +213,29 @@ function mostrarGrupo() {
       `;
     });
 
-    // calcula média geral do grupo
+    // média geral do grupo
     const mediaPro = participantes > 0 ? Math.round(totalPro / participantes) : 0;
     const mediaContra = 100 - mediaPro;
 
-    // Monta tela final: gráfico à esquerda, blocos dos membros à direita
-   document.getElementById("result").innerHTML = `
-  <div class="dashboard-card">
-    <h2>Análise do Grupo</h2>
-    <div class="resumo-percentual">
-      Média do grupo: ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
-    </div>
+    // renderiza resultado do grupo
+    document.getElementById("result").innerHTML = `
+      <div class="dashboard-card">
+        <h2>Análise do Grupo</h2>
+        <div class="resumo-percentual">
+          Média do grupo: ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
+        </div>
 
-    <div class="grafico-wrapper" style="margin-bottom: 24px;">
-      <canvas id="graficoGrupo"></canvas>
-    </div>
+        <!-- gráfico do grupo em cima -->
+        <div class="grafico-wrapper" style="margin: 12px auto 24px auto;">
+          <canvas id="graficoGrupo"></canvas>
+        </div>
 
-    ${blocosParticipantes}
-  </div>
-`;
+        <!-- blocos individuais (cada pessoa com sua mini tabela) -->
+        ${blocosParticipantes}
+      </div>
+    `;
 
-
-    // cria gráfico pizza da média do grupo
+    // cria gráfico médio do grupo
     new Chart(document.getElementById("graficoGrupo"), {
       type: "pie",
       data: {
@@ -271,7 +262,6 @@ function mostrarGrupo() {
   });
 }
 
-
 function limparDados() {
   if (!confirm("Tem certeza que deseja apagar todos os dados?")) return;
 
@@ -283,4 +273,3 @@ function limparDados() {
     alert("Todos os dados foram apagados.");
   });
 }
-
