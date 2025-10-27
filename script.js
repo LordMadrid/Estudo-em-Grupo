@@ -191,6 +191,7 @@ function mostrarGrupo() {
         participantes++;
       }
 
+      // bloco dessa pessoa
       blocosParticipantes += `
         <div style="margin-bottom:24px;">
           <div style="font-weight:600; font-size:0.95rem; margin-bottom:8px; color:#111;">
@@ -217,7 +218,8 @@ function mostrarGrupo() {
     const mediaPro = participantes > 0 ? Math.round(totalPro / participantes) : 0;
     const mediaContra = 100 - mediaPro;
 
-    // renderiza resultado do grupo
+    // *** AQUI VEM A MUDANÇA IMPORTANTE ***
+    // gráfico agora vai sozinho lá em cima, e os blocos vêm DEPOIS
     document.getElementById("result").innerHTML = `
       <div class="dashboard-card">
         <h2>Análise do Grupo</h2>
@@ -225,17 +227,17 @@ function mostrarGrupo() {
           Média do grupo: ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
         </div>
 
-        <!-- gráfico do grupo em cima -->
+        <!-- gráfico AGORA FICA EM CIMA -->
         <div class="grafico-wrapper" style="margin: 12px auto 24px auto;">
           <canvas id="graficoGrupo"></canvas>
         </div>
 
-        <!-- blocos individuais (cada pessoa com sua mini tabela) -->
+        <!-- depois do gráfico, um bloco por participante -->
         ${blocosParticipantes}
       </div>
     `;
 
-    // cria gráfico médio do grupo
+    // cria gráfico pizza da média do grupo
     new Chart(document.getElementById("graficoGrupo"), {
       type: "pie",
       data: {
@@ -261,6 +263,7 @@ function mostrarGrupo() {
     });
   });
 }
+
 
 function limparDados() {
   if (!confirm("Tem certeza que deseja apagar todos os dados?")) return;
