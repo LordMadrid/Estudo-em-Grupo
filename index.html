@@ -1,15 +1,21 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Avaliação Baja</title>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase compat (app + firestore) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- Fonte e estilos visuais -->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
+
     body {
       margin: 0;
       font-family: 'Aptos Display', sans-serif;
@@ -18,6 +24,7 @@
       overflow-x: hidden;
       position: relative;
     }
+
     canvas.particle {
       position: fixed;
       top: 0; left: 0;
@@ -25,12 +32,25 @@
       width: 100vw;
       height: 100vh;
     }
+
     h1 {
       text-align: center;
       font-size: 2.5em;
       margin-top: 30px;
       color: white;
     }
+
+    /* Card base reutilizável (fundo branco arredondado) */
+    .card-branco {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #ffffffdd;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    /* Formulário do questionário (mesmo estilo do card antigo) */
     form {
       max-width: 700px;
       margin: auto;
@@ -39,15 +59,19 @@
       border-radius: 16px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
+
     .question { margin-bottom: 20px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; color:#000; }
+
     select, input[type="text"] {
       width: 100%;
       padding: 8px;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      font-family: inherit;
     }
+
     button {
       background-color: #2980b9;
       color: white;
@@ -56,229 +80,284 @@
       font-size: 16px;
       border-radius: 10px;
       cursor: pointer;
-      display: block;
-      margin: 30px auto 0;
+      display: inline-block;
     }
+
     button:hover { background-color: #1c5980; }
+
+    /* Área onde mostramos resultado/análise */
     #result {
- /* layout lado a lado: gráfico | tabela */
-.dashboard-flex {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  align-items: flex-start;
-}
+      max-width: 850px;
+      margin: 40px auto 60px auto;
+    }
 
-/* coluna do gráfico */
-.dashboard-left {
-  flex: 0 0 260px;       /* largura fixa ~260px */
-}
+    /* Cartão branco do dashboard/resultados */
+    .dashboard-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 24px 32px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+      color: #111;
+      overflow-x: auto;
+    }
 
-/* coluna da tabela */
-.dashboard-right {
-  flex: 1;               /* ocupa o resto do espaço */
-  min-width: 260px;
-}
+    .dashboard-card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #111;
+      text-align: left;
+    }
 
-/* caixa branca geral (card) */
-.dashboard-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px 24px 32px;
-  box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-  color: #111;
-  overflow-x: auto;
-}
+    .resumo-percentual {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #222;
+      margin-bottom: 12px;
+    }
 
-/* título da análise */
-.dashboard-card h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 16px;
-  color: #111;
-}
+    /* Gráfico com tamanho controlado */
+    .grafico-wrapper {
+      width: 260px;
+      height: 260px;
+      position: relative;
+      margin: 12px auto 24px auto; /* centraliza */
+    }
 
-/* wrapper do gráfico (tamanho controlado) */
-.grafico-wrapper {
-  width: 260px;
-  height: 260px;
-  position: relative;
-  margin: 0 auto;
-}
+    /* Tabela estilo planilha */
+    .table-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+    }
 
-/* legenda de % abaixo do título */
-.resumo-percentual {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #222;
-  margin-bottom: 12px;
-}
+    .survey-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      min-width: 260px;
+      font-size: 0.9rem;
+      color: #222;
+    }
 
-/* ---- TABELA ESTILO PLANILHA ---- */
+    .survey-table th,
+    .survey-table td {
+      text-align: left;
+      padding: 10px 12px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      vertical-align: top;
+    }
 
-/* a tabela inteira */
-.table-wrapper {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-}
+    .survey-table th.pergunta-col,
+    .survey-table td.pergunta-col {
+      font-weight: 600;
+      background-color: #f9f9f9;
+      width: 55%;
+      max-width: 55%;
+      white-space: normal;
+    }
 
-.survey-table {
-  border-collapse: separate; /* importante pra borda arredondada nas células */
-  border-spacing: 0;
-  width: 100%;
-  min-width: 260px;
-  font-size: 0.9rem;
-  color: #222;
-}
+    .survey-table td.resposta-col {
+      white-space: normal;
+      font-weight: 500;
+    }
 
-/* células padrão */
-.survey-table th,
-.survey-table td {
-  text-align: left;
-  padding: 10px 12px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-}
+    .survey-table thead th {
+      background-color: #f9f9f9;
+      color: #111;
+      border: 1px solid #ddd;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
 
-/* primeira coluna (pergunta) fica um pouco mais escura pra separar visualmente */
-.survey-table th.pergunta-col,
-.survey-table td.pergunta-col {
-  font-weight: 600;
-  background-color: #f9f9f9;
-  width: 55%;
-  max-width: 55%;
-  white-space: normal;
-}
+    /* cantos arredondados */
+    .survey-table tr:first-child th:first-child {
+      border-top-left-radius: 10px;
+    }
+    .survey-table tr:first-child th:last-child {
+      border-top-right-radius: 10px;
+    }
+    .survey-table tr:last-child td:first-child {
+      border-bottom-left-radius: 10px;
+    }
+    .survey-table tr:last-child td:last-child {
+      border-bottom-right-radius: 10px;
+    }
 
-/* segunda coluna (resposta) */
-.survey-table td.resposta-col {
-  white-space: normal;
-  font-weight: 500;
-}
+    /* caixa de sugestões (pontos de atenção) */
+    .suggestions {
+      margin-top: 24px;
+      padding: 15px 16px;
+      background: #fffbe6;
+      border: 1px solid #ffdd57;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .suggestions strong {
+      font-weight: 600;
+    }
+    .suggestions ul {
+      margin: 8px 0 0 16px;
+      padding: 0;
+    }
+    .suggestions li {
+      margin-bottom: 6px;
+    }
 
-/* borda arredondada nas células de canto */
-.survey-table tr:first-child th:first-child {
-  border-top-left-radius: 10px;
-}
-.survey-table tr:first-child th:last-child {
-  border-top-right-radius: 10px;
-}
-.survey-table tr:last-child td:first-child {
-  border-bottom-left-radius: 10px;
-}
-.survey-table tr:last-child td:last-child {
-  border-bottom-right-radius: 10px;
-}
-
-/* remove aquela faixa verde berrante no header antigo */
-.survey-table thead th {
-  background-color: #f9f9f9;
-  color: #111;
-  border: 1px solid #ddd;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-/* caixa de sugestões (feedback negativo) */
-.suggestions {
-  margin-top: 24px;
-  padding: 15px 16px;
-  background: #fffbe6;
-  border: 1px solid #ffdd57;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-.suggestions strong {
-  font-weight: 600;
-}
-.suggestions ul {
-  margin: 8px 0 0 16px;
-  padding: 0;
-}
-.suggestions li {
-  margin-bottom: 6px;
-}
-    
+    /* botões do lobby lado a lado */
+    .lobby-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
   </style>
+
   <script src="script.js" defer></script>
 </head>
 <body>
-<canvas class="particle" id="bgCanvas"></canvas>
-<h1>Avaliação Baja</h1>
-<form id="reflectionForm">
-  <div class="question"><label>Seu nome:</label>
-    <input type="text" id="userName" placeholder="Digite seu nome" required>
-  </div>
-  
-  <div class="question"><label>1. Como você se sente com o projeto?</label>
-    <select name="q1">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>2. Como você considera sua participação na equipe?</label>
-    <select name="q2">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>3. Analisando de forma geral, o que você acha da frequência das reuniões?</label>
-    <select name="q3">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>4. Como você se sente referente à liderança?</label>
-    <select name="q4">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>5. Como você avalia a comunicação entre os membros da equipe?</label>
-    <select name="q5">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>6. Você sente que suas ideias são ouvidas e consideradas?</label>
-    <select name="q6">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>7. O ambiente de trabalho é positivo e acolhedor?</label>
-    <select name="q7">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question"><label>8. Você acredita que está se desenvolvendo profissionalmente neste projeto?</label>
-    <select name="q8">
-      <option value="pro">Satisfeito</option>
-      <option value="contra">Pouco satisfeito</option>
-      <option value="neutro">Indiferente</option>
-    </select>
-  </div>
-  <div class="question">
-    <label>Deixe sua sugestão, algo que você acha que pode melhorar ou que sente falta dentro do Baja:</label>
-    <input type="text" id="sugestaoInput" placeholder="Digite sua sugestão aqui...">
-  </div>
-  <button type="button" onclick="analisar()">Analisar</button>
-  <div style="text-align:center; margin-top:20px;">
-    <button type="button" onclick="mostrarGrupo()">Mostrar Grupo</button>
-    <button type="button" onclick="limparDados()" style="background-color:#e74c3c;margin-left:10px;">Limpar Dados</button>
-  </div>
-</form>
-<div id="result"></div>
+  <!-- fundo animado -->
+  <canvas class="particle" id="bgCanvas"></canvas>
+
+  <!-- ========== 1) LOBBY INICIAL / PORTAL ========== -->
+  <section id="lobbySection" class="card-branco" style="font-family:'Aptos Display',sans-serif;">
+    <h1 style="text-align:center; font-size:2em; color:#000; margin-top:0;">
+      Avaliação Baja
+    </h1>
+
+    <p style="font-size:1rem; color:#000; line-height:1.4; margin-bottom:20px;">
+      Antes de começar, você prefere se identificar ou responder de forma anônima?
+    </p>
+
+    <!-- Botões de escolha -->
+    <div class="lobby-btns">
+      <button type="button"
+              class="escolhaIdentBtn"
+              style="background-color:#2980b9;"
+              onclick="definirIdentificacao(true)">
+        Quero me identificar
+      </button>
+
+      <button type="button"
+              class="escolhaIdentBtn"
+              style="background-color:#555;"
+              onclick="definirIdentificacao(false)">
+        Quero ficar anônimo
+      </button>
+    </div>
+
+    <!-- Campo para nome (só aparece se a pessoa escolher se identificar) -->
+    <div id="nomeWrapper" style="display:none; margin-top:10px;">
+      <label style="font-weight:bold; display:block; margin-bottom:5px; color:#000;">
+        Seu nome:
+      </label>
+      <input type="text"
+             id="lobbyNomeInput"
+             placeholder="Digite seu nome"
+             style="width:100%; padding:8px; font-size:16px; border-radius:8px; border:1px solid #ccc; font-family:inherit;">
+    </div>
+
+    <!-- Ir para o questionário -->
+    <div style="text-align:center; margin-top:24px;">
+      <button type="button"
+              style="background-color:#2980b9;"
+              onclick="entrarNoQuestionario()">
+        Começar questionário
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ========== 2) QUESTIONÁRIO / PESQUISA ========== -->
+  <section id="questionarioSection" style="display:none;">
+    <h1>Avaliação Baja</h1>
+
+    <form id="reflectionForm">
+      <!-- Campo "Seu nome" foi removido -->
+
+      <div class="question"><label>1. Como você se sente com o projeto?</label>
+        <select name="q1">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>2. Como você considera sua participação na equipe?</label>
+        <select name="q2">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>3. Analisando de forma geral, o que você acha da frequência das reuniões?</label>
+        <select name="q3">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>4. Como você se sente referente à liderança?</label>
+        <select name="q4">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>5. Como você avalia a comunicação entre os membros da equipe?</label>
+        <select name="q5">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>6. Você sente que suas ideias são ouvidas e consideradas?</label>
+        <select name="q6">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>7. O ambiente de trabalho é positivo e acolhedor?</label>
+        <select name="q7">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question"><label>8. Você acredita que está se desenvolvendo profissionalmente neste projeto?</label>
+        <select name="q8">
+          <option value="pro">Satisfeito</option>
+          <option value="contra">Pouco satisfeito</option>
+          <option value="neutro">Indiferente</option>
+        </select>
+      </div>
+
+      <div class="question">
+        <label>Deixe sua sugestão, algo que você acha que pode melhorar ou que sente falta dentro do Baja:</label>
+        <input type="text" id="sugestaoInput" placeholder="Digite sua sugestão aqui...">
+      </div>
+
+      <button type="button" onclick="analisar()">Analisar</button>
+
+      <div style="text-align:center; margin-top:20px;">
+        <button type="button" onclick="mostrarGrupo()">Mostrar Grupo</button>
+        <button type="button" onclick="limparDados()" style="background-color:#e74c3c;margin-left:10px;">Limpar Dados</button>
+      </div>
+    </form>
+
+    <!-- Resultado / Dashboard aparece aqui -->
+    <div id="result"></div>
+  </section>
 </body>
 </html>
