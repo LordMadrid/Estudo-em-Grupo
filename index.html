@@ -12,272 +12,283 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <!-- Fonte e estilos visuais -->
- <style>
-@import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
+  <!-- Estilos -->
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
 
-body {
-  margin: 0;
-  font-family: 'Aptos Display', sans-serif;
-  background: #007a2a; /* verde liso */
-  color: #000;
-  overflow-x: hidden;
-  min-height: 100vh;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 16px;
-}
+  body {
+    margin: 0;
+    font-family: 'Aptos Display', sans-serif;
+    background: #007a2a; /* verde liso */
+    color: #000;
+    overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
 
-/* fundo animado (se quiser manter pode deixar sem cor) */
-canvas.particle {
-  position: fixed;
-  top: 0; left: 0;
-  z-index: -1;
-  width: 100vw;
-  height: 100vh;
-}
+    /* centralizar o lobby no meio da tela */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-/* Centralização vertical/horizontal do lobby */
-#lobbyWrapper {
-  width: 100%;
-  max-width: 700px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    padding: 40px 16px;
+  }
 
-/* Card branco de lobby */
-.card-branco {
-  width: 100%;
-  background: #ffffffdd;
-  border-radius: 16px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.25);
-  padding: 20px;
-  color: #000;
-}
+  canvas.particle {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: -1;
+    width: 100vw;
+    height: 100vh;
+  }
 
-.lobby-card {
-  text-align: left;
-}
+  /* wrapper do lobby (pra conseguir esconder e mostrar depois) */
+  #lobbyWrapper {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-.lobby-title {
-  text-align: center;
-  font-size: 2em;
-  color: #000;
-  margin-top: 0;
-  margin-bottom: 16px;
-}
+  /* cartão do lobby */
+  .card-branco {
+    width: 100%;
+    background: #ffffffdd;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.25);
+    padding: 20px;
+    color: #000;
+  }
 
-.lobby-desc {
-  font-size: 1rem;
-  color: #000;
-  line-height: 1.4;
-  margin-bottom: 20px;
-}
+  .lobby-card {
+    text-align: left;
+  }
 
-.lobby-btns {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
+  .lobby-title {
+    text-align: center;
+    font-size: 2em;
+    color: #000;
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
 
-.lobby-label {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 5px;
-  color: #000;
-}
+  .lobby-desc {
+    font-size: 1rem;
+    color: #000;
+    line-height: 1.4;
+    margin-bottom: 20px;
+  }
 
-.lobby-input {
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-family: inherit;
-  background-color: #fff;
-}
+  .lobby-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
 
-/* sumir tela do lobby quando troca */
-#questionarioSection {
-  max-width: 700px;
-  margin: 40px auto;
-}
+  .lobby-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #000;
+  }
 
-/* título da etapa de perguntas */
-.questionario-title {
-  text-align: center;
-  font-size: 2.2em;
-  margin-top: 0;
-  color: #fff;
-}
+  .lobby-input {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    background-color: #fff;
+  }
 
-/* formulário branco */
-form {
-  max-width: 700px;
-  margin: auto;
-  background: #ffffffdd;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.25);
-}
+  /* tela do questionário */
+  #questionarioSection {
+    max-width: 700px;
+    margin: 40px auto;
+    display: none; /* começa escondido */
+  }
 
-.question { margin-bottom: 20px; }
-label { font-weight: bold; display: block; margin-bottom: 5px; color:#000; }
+  .questionario-title {
+    text-align: center;
+    font-size: 2.2em;
+    margin-top: 0;
+    color: #fff;
+  }
 
-select, input[type="text"] {
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-family: inherit;
-  background-color: #fff;
-}
+  form {
+    max-width: 700px;
+    margin: auto;
+    background: #ffffffdd;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.25);
+  }
 
-/* botões */
-.main-btn {
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  color: white;
-  min-width: 230px;
-  text-align: center;
-  font-family: inherit;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
+  .question { margin-bottom: 20px; }
+  label { font-weight: bold; display: block; margin-bottom: 5px; color:#000; }
 
-.main-btn.azul { background-color: #2980b9; }
-.main-btn.azul:hover { background-color: #1c5980; }
+  select,
+  input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    background-color: #fff;
+  }
 
-.main-btn.cinza { background-color: #555; }
-.main-btn.cinza:hover { background-color: #333; }
+  /* botões principais */
+  .main-btn {
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+    min-width: 230px;
+    text-align: center;
+    font-family: inherit;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  }
 
-.main-btn.vermelho { background-color: #e74c3c; }
-.main-btn.vermelho:hover { background-color: #c0392b; }
+  .main-btn.azul { background-color: #2980b9; }
+  .main-btn.azul:hover { background-color: #1c5980; }
 
-/* RESULTADO DASHBOARD */
-#result {
-  max-width: 850px;
-  margin: 40px auto 60px auto;
-}
+  .main-btn.cinza { background-color: #555; }
+  .main-btn.cinza:hover { background-color: #333; }
 
-.dashboard-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px 24px 32px;
-  box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-  color: #111;
-  overflow-x: auto;
-}
+  .main-btn.vermelho { background-color: #e74c3c; }
+  .main-btn.vermelho:hover { background-color: #c0392b; }
 
-.dashboard-card h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 12px;
-  color: #111;
-  text-align: left;
-}
+  /* estado ativo da escolha no lobby */
+  .main-btn.ativo {
+    filter: brightness(0.85);
+    transform: scale(0.97);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.3) inset;
+  }
 
-.resumo-percentual {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #222;
-  margin-bottom: 12px;
-}
+  /* bloco onde o resultado aparece */
+  #result {
+    max-width: 850px;
+    margin: 40px auto 60px auto;
+  }
 
-/* gráfico */
-.grafico-wrapper {
-  width: 260px;
-  height: 260px;
-  position: relative;
-  margin: 12px auto 24px auto;
-  background: #fff;
-}
+  /* cartão branco do dashboard */
+  .dashboard-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 24px 32px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+    color: #111;
+    overflow-x: auto;
+  }
 
-/* tabela estilo planilha */
-.table-wrapper {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-}
+  .dashboard-card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #111;
+    text-align: left;
+  }
 
-.survey-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-  min-width: 260px;
-  font-size: 0.9rem;
-  color: #222;
-}
+  .resumo-percentual {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #222;
+    margin-bottom: 12px;
+  }
 
-.survey-table th,
-.survey-table td {
-  text-align: left;
-  padding: 10px 12px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  vertical-align: top;
-}
+  /* gráfico pequeno */
+  .grafico-wrapper {
+    width: 260px;
+    height: 260px;
+    position: relative;
+    margin: 12px auto 24px auto;
+    background: #fff;
+  }
 
-.survey-table th.pergunta-col,
-.survey-table td.pergunta-col {
-  font-weight: 600;
-  background-color: #f9f9f9;
-  width: 55%;
-  max-width: 55%;
-  white-space: normal;
-}
+  /* tabela tipo planilha */
+  .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
 
-.survey-table td.resposta-col {
-  white-space: normal;
-  font-weight: 500;
-}
+  .survey-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 260px;
+    font-size: 0.9rem;
+    color: #222;
+  }
 
-.survey-table thead th {
-  background-color: #f9f9f9;
-  color: #111;
-  border: 1px solid #ddd;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
+  .survey-table th,
+  .survey-table td {
+    text-align: left;
+    padding: 10px 12px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
 
-.survey-table tr:first-child th:first-child { border-top-left-radius: 10px; }
-.survey-table tr:first-child th:last-child { border-top-right-radius: 10px; }
-.survey-table tr:last-child td:first-child { border-bottom-left-radius: 10px; }
-.survey-table tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+  .survey-table th.pergunta-col,
+  .survey-table td.pergunta-col {
+    font-weight: 600;
+    background-color: #f9f9f9;
+    width: 55%;
+    max-width: 55%;
+    white-space: normal;
+  }
 
-.suggestions {
-  margin-top: 24px;
-  padding: 15px 16px;
-  background: #fffbe6;
-  border: 1px solid #ffdd57;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-.suggestions strong { font-weight: 600; }
-.suggestions ul {
-  margin: 8px 0 0 16px;
-  padding: 0;
-}
-.suggestions li { margin-bottom: 6px; }
-</style>
+  .survey-table td.resposta-col {
+    white-space: normal;
+    font-weight: 500;
+  }
+
+  .survey-table thead th {
+    background-color: #f9f9f9;
+    color: #111;
+    border: 1px solid #ddd;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .survey-table tr:first-child th:first-child { border-top-left-radius: 10px; }
+  .survey-table tr:first-child th:last-child { border-top-right-radius: 10px; }
+  .survey-table tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+  .survey-table tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+
+  .suggestions {
+    margin-top: 24px;
+    padding: 15px 16px;
+    background: #fffbe6;
+    border: 1px solid #ffdd57;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .suggestions strong { font-weight: 600; }
+  .suggestions ul {
+    margin: 8px 0 0 16px;
+    padding: 0;
+  }
+  .suggestions li { margin-bottom: 6px; }
+  </style>
 
   <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- fundo verde sólido -->
+  <!-- fundo (se quiser animar depois, mantém o canvas aqui) -->
   <canvas class="particle" id="bgCanvas"></canvas>
 
-  <!-- 1) Lobby centralizado -->
+  <!-- 1) Lobby inicial -->
   <section id="lobbyWrapper">
     <section id="lobbySection" class="card-branco lobby-card">
       <h1 class="lobby-title">
@@ -288,22 +299,22 @@ select, input[type="text"] {
         Antes de começar, você prefere se identificar ou responder de forma anônima?
       </p>
 
-      <!-- Botões de escolha -->
       <div class="lobby-btns">
         <button type="button"
                 class="escolhaIdentBtn main-btn azul"
+                id="btnIdentificar"
                 onclick="definirIdentificacao(true)">
           Quero me identificar
         </button>
 
         <button type="button"
                 class="escolhaIdentBtn main-btn cinza"
+                id="btnAnonimo"
                 onclick="definirIdentificacao(false)">
           Quero ficar anônimo
         </button>
       </div>
 
-      <!-- Campo para nome (só aparece se a pessoa escolher se identificar) -->
       <div id="nomeWrapper" style="display:none; margin-top:10px;">
         <label class="lobby-label">
           Seu nome:
@@ -311,13 +322,15 @@ select, input[type="text"] {
         <input type="text"
                id="lobbyNomeInput"
                placeholder="Digite seu nome"
-               class="lobby-input">
+               class="lobby-input"
+               oninput="atualizarDisponibilidadeEntrada()" />
       </div>
 
-      <!-- Ir para o questionário -->
       <div style="text-align:center; margin-top:24px;">
         <button type="button"
                 class="main-btn azul"
+                id="btnComecar"
+                style="display:none;"
                 onclick="entrarNoQuestionario()">
           Começar questionário
         </button>
@@ -326,8 +339,16 @@ select, input[type="text"] {
   </section>
 
   <!-- 2) Questionário -->
-  <section id="questionarioSection" style="display:none;">
+  <section id="questionarioSection">
     <h1 class="questionario-title">Avaliação Baja</h1>
+
+    <div style="text-align:center; margin-bottom:16px;">
+      <button type="button"
+              class="main-btn cinza"
+              onclick="voltarLobby()">
+        Voltar
+      </button>
+    </div>
 
     <form id="reflectionForm">
       <div class="question">
@@ -432,7 +453,6 @@ select, input[type="text"] {
       </div>
     </form>
 
-    <!-- onde aparece o dashboard -->
     <div id="result"></div>
   </section>
 
