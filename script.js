@@ -101,54 +101,50 @@ function analisar() {
   }
 
   // agora renderizamos gráfico (esquerda) + tabela (direita) lado a lado
-  document.getElementById("result").innerHTML = `
-    <div class="dashboard-card">
-      <h2>Resultado Individual</h2>
-      <div class="resumo-percentual">
-        ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito
-      </div>
-
-      <div class="dashboard-flex">
-        <div class="dashboard-left">
-          <div class="grafico-wrapper">
-            <canvas id="graficoPizza"></canvas>
-          </div>
-        </div>
-
-        <div class="dashboard-right">
-          ${tabelaHTML}
-        </div>
-      </div>
-
-      ${sugestoesHTML}
+ document.getElementById("result").innerHTML = `
+  <div class="dashboard-card">
+    <h2>Resultado da Análise</h2>
+    <div class="resumo-percentual">
+      ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito
     </div>
-  `;
 
-  // cria o gráfico de pizza
-  new Chart(document.getElementById("graficoPizza"), {
-    type: "pie",
-    data: {
-      labels: ["Satisfeito", "Insatisfeito"],
-      datasets: [{
-        data: [pctPro, pctContra],
-        backgroundColor: ["#2ecc71", "#e74c3c"]
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: {
-            boxWidth: 12,
-            font: { size: 12 }
-          }
-        }
-      }
-    }
-  });
-}
+    <!-- gráfico agora vem antes da tabela -->
+    <div class="grafico-wrapper" style="margin-bottom: 24px; margin-top: 12px;">
+      <canvas id="graficoPizza"></canvas>
+    </div>
+
+    <!-- tabela de respostas logo abaixo -->
+    <div class="table-wrapper">
+      <table class="survey-table">
+        <thead>
+          <tr>
+            <th class="pergunta-col">Pergunta</th>
+            <th>Resposta</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.values(respostas).map(item => `
+            <tr>
+              <td class="pergunta-col">${item.pergunta}</td>
+              <td class="resposta-col">${item.resposta}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${contrasLista.length > 0 ? `
+      <div class="suggestions">
+        <strong>Pontos de atenção:</strong>
+        <ul>
+          ${contrasLista.map(item => `
+            <li><strong>${item.pergunta}</strong>: "${item.resposta}"</li>
+          `).join('')}
+        </ul>
+      </div>
+    ` : ""}
+  </div>
+`;
 
 
 function mostrarGrupo() {
