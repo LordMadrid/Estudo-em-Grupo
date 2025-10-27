@@ -61,93 +61,146 @@
     }
     button:hover { background-color: #1c5980; }
     #result {
-     max-width: 850px;
-      margin: 40px auto 60px auto;
-    }
+ /* layout lado a lado: gráfico | tabela */
+.dashboard-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
 
-    .dashboard-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px 24px 32pz
-      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-      color: #111;
-      overflow-x: auto;
-    }
+/* coluna do gráfico */
+.dashboard-left {
+  flex: 0 0 260px;       /* largura fixa ~260px */
+}
 
-    .dashboard-card h2 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin-top: 0;
-      margin-bottom: 12px;
-      color: #111;
-      text-align: left;
-    }
-    
-    .dashboard-card p {
-      margin-top: 0;
-      font-size: 0.95rem;
-      font-weight: 500
-      color: #222;
-      text-align: left;
-    }
+/* coluna da tabela */
+.dashboard-right {
+  flex: 1;               /* ocupa o resto do espaço */
+  min-width: 260px;
+}
 
-    .grafico-wrapper {
-      width: 260px;
-      height: 260px;
-      margin: 16px auto 24px auto;
-      position: relative;
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 600px
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      background: #fff;
-      font-size: 0.9rem;
-      margin-top: 20px;
-    }
+/* caixa branca geral (card) */
+.dashboard-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 24px 32px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+  color: #111;
+  overflow-x: auto;
+}
 
-    th {
-      background-color: #00b85c;
-      color: #fff;
-      texto-align: left;
-      padding: 12px 16px
-        fot-weight: 600;
-      white-space: nowrap;
-      border-bottom: 1px solid #00964d;
-    }
-    
-    td {
-      padding: 12px 16px
-      border-bottom: 1px solid #eee;
-      color: #222;
-      vertical-align: top;
-      white-space: nowrap;
-    }
+/* título da análise */
+.dashboard-card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #111;
+}
 
-    tr: nth-child(even) {
-      background-color: #fafafa;
-    }
+/* wrapper do gráfico (tamanho controlado) */
+.grafico-wrapper {
+  width: 260px;
+  height: 260px;
+  position: relative;
+  margin: 0 auto;
+}
 
-    tr:last-child td {
-      border-bottom: none;
-    }
+/* legenda de % abaixo do título */
+.resumo-percentual {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 12px;
+}
 
-    .suggestions {
-      margin-top: 30px;
-      padding: 15px 16px;
-      background: #fffbe6
-      border-left: 5px solid #ffdd57;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
+/* ---- TABELA ESTILO PLANILHA ---- */
 
-    .suggestions ul {
-      margin: 8px 0 0 16px;
-    }
+/* a tabela inteira */
+.table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.survey-table {
+  border-collapse: separate; /* importante pra borda arredondada nas células */
+  border-spacing: 0;
+  width: 100%;
+  min-width: 260px;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+/* células padrão */
+.survey-table th,
+.survey-table td {
+  text-align: left;
+  padding: 10px 12px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+
+/* primeira coluna (pergunta) fica um pouco mais escura pra separar visualmente */
+.survey-table th.pergunta-col,
+.survey-table td.pergunta-col {
+  font-weight: 600;
+  background-color: #f9f9f9;
+  width: 55%;
+  max-width: 55%;
+  white-space: normal;
+}
+
+/* segunda coluna (resposta) */
+.survey-table td.resposta-col {
+  white-space: normal;
+  font-weight: 500;
+}
+
+/* borda arredondada nas células de canto */
+.survey-table tr:first-child th:first-child {
+  border-top-left-radius: 10px;
+}
+.survey-table tr:first-child th:last-child {
+  border-top-right-radius: 10px;
+}
+.survey-table tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+.survey-table tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+/* remove aquela faixa verde berrante no header antigo */
+.survey-table thead th {
+  background-color: #f9f9f9;
+  color: #111;
+  border: 1px solid #ddd;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* caixa de sugestões (feedback negativo) */
+.suggestions {
+  margin-top: 24px;
+  padding: 15px 16px;
+  background: #fffbe6;
+  border: 1px solid #ffdd57;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.suggestions strong {
+  font-weight: 600;
+}
+.suggestions ul {
+  margin: 8px 0 0 16px;
+  padding: 0;
+}
+.suggestions li {
+  margin-bottom: 6px;
+}
     
   </style>
   <script src="script.js" defer></script>
