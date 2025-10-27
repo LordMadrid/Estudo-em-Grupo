@@ -1,4 +1,15 @@
-// Configuração do Firebase
+// =========================
+// ESTADO GLOBAL
+// =========================
+
+let nomeDoParticipante = "Anônimo"; // usado ao salvar e exibir
+let querSeIdentificar = false;      // true = vai informar nome, false = anônimo
+
+
+// =========================
+// FIREBASE
+// =========================
+
 const firebaseConfig = {
   apiKey: "AIzaSyAGCBI060-xyJOhmIqQETLGp6CAGuCIwQU",
   authDomain: "estudo-de-caso-4d8cb.firebaseapp.com",
@@ -7,25 +18,82 @@ const firebaseConfig = {
   messagingSenderId: "129615747041",
   appId: "1:129615747041:web:188394b09de01e9f3d64a0"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+
+// =========================
+// TELA INICIAL (LOBBY)
+// =========================
+
+// Chamada ao clicar em "Quero me identificar"
+function definirIdentificacao(valor) {
+  // valor: true (identificar) ou false (anônimo)
+  querSeIdentificar = valor;
+
+  const nomeWrapper = document.getElementById("nomeWrapper");
+
+  if (querSeIdentificar) {
+    // mostra o campo de nome
+    nomeWrapper.style.display = "block";
+  } else {
+    // esconde o campo de nome e limpa
+    nomeWrapper.style.display = "none";
+    const nomeInput = document.getElementById("lobbyNomeInput");
+    if (nomeInput) nomeInput.value = "";
+  }
+}
+
+// Chamada ao clicar em "Começar questionário"
+function entrarNoQuestionario() {
+  if (querSeIdentificar) {
+    // se a pessoa escolheu se identificar, precisamos do nome
+    const nomeDigitado = document.getElementById("lobbyNomeInput").value.trim();
+    if (!nomeDigitado) {
+      alert("Por favor, insira seu nome ou escolha responder como anônimo.");
+      return;
+    }
+    nomeDoParticipante = nomeDigitado;
+  } else {
+    nomeDoParticipante = "Anônimo";
+  }
+
+  // Esconde a tela inicial e mostra o questionário
+  document.getElementById("lobbySection").style.display = "none";
+  document.getElementById("questionarioSection").style.display = "block";
+
+  // Sobe pro topo quando mudar de tela
+  window.scrollTo(0, 0);
+}
+
+
+// =========================
+/* ANALISAR (RESULTADO INDIVIDUAL)
+   - Lê respostas do formulário
+   - Salva no Firestore
+   - Monta o dashboard individual com gráfico e tabela
+*/
+// =========================
 function analisar() {
-  const userName = document.getElementById('userName').value.trim();
+  // Nome já está decidido no lobby
+  const userName = nomeDoParticipante;
+
   const sugestao = document.getElementById('sugestaoInput').value.trim();
-  if (!userName) return alert('Por favor, insira seu nome.');
 
+  // pega todos os <select name="q1"...>
   const selects = [...document.querySelectorAll("select[name^='q']")];
-  let pro = 0, contra = 0;
-  const respostas = {};
-  const contrasLista = [];
 
-  // coleta respostas
+  let pro = 0;
+  let contra = 0;
+  const respostas = {};
+  const contrasLista = []; // perguntas marcadas como "contra"
+
   selects.forEach((el) => {
-    const val = el.value;
-    const text = el.options[el.selectedIndex].text;
-    const question = el.previousElementSibling.textContent;
-    const nameAttr = el.getAttribute("name");
+    const val = el.value; // "pro", "contra", "neutro"
+    const text = el.options[el.selectedIndex].text; // texto visível ("Satisfeito", etc)
+    const question = el.previousElementSibling.textContent; // texto da <label>
+    const nameAttr = el.getAttribute("name"); // "q1", "q2", ...
 
     respostas[nameAttr] = {
       pergunta: question,
@@ -33,14 +101,16 @@ function analisar() {
       valor: val
     };
 
-    if (val === 'pro') pro++;
+    if (val === 'pro') {
+      pro++;
+    }
     if (val === 'contra') {
       contrasLista.push({ pergunta: question, resposta: text });
       contra++;
     }
   });
 
-  // sugestão aberta
+  // inclui sugestão aberta como mais uma "pergunta"
   respostas["sugestao"] = {
     pergunta: "Sugestão de melhoria",
     resposta: sugestao || "(sem sugestão)",
@@ -54,12 +124,12 @@ function analisar() {
     respostas: respostas
   });
 
-  // calcula % de satisfação individual
+  // calcula % satisfação individual
   const total = pro + contra;
   const pctPro = total ? Math.round((pro * 100) / total) : 0;
   const pctContra = 100 - pctPro;
 
-  // monta linhas da tabela Pergunta | Resposta
+  // monta tabela Pergunta | Resposta
   const linhasTabela = Object.values(respostas).map(item => `
     <tr>
       <td class="pergunta-col">${item.pergunta}</td>
@@ -67,32 +137,33 @@ function analisar() {
     </tr>
   `).join('');
 
-  // bloco de sugestões (só se tiver "contra")
-  const sugestoesHTML = contrasLista.length > 0 ? `
-    <div class="suggestions">
-      <strong>Pontos de atenção:</strong>
-      <ul>
-        ${contrasLista.map(item => `
-          <li><strong>${item.pergunta}</strong>: "${item.resposta}"</li>
-        `).join('')}
-      </ul>
-    </div>
-  ` : "";
+  // bloco adicional para pontos de atenção (respostas "contra")
+  const sugestoesHTML = contrasLista.length > 0
+    ? `
+      <div class="suggestions">
+        <strong>Pontos de atenção:</strong>
+        <ul>
+          ${contrasLista.map(item => `
+            <li><strong>${item.pergunta}</strong>: "${item.resposta}"</li>
+          `).join('')}
+        </ul>
+      </div>
+    `
+    : "";
 
-  // renderiza resultado no card
+  // renderiza o resultado individual no container #result
   document.getElementById("result").innerHTML = `
     <div class="dashboard-card">
       <h2>Resultado Individual</h2>
       <div class="resumo-percentual">
-        ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito
+        ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito<br/>
+        Participante: ${userName}
       </div>
 
-      <!-- gráfico agora vem primeiro -->
-      <div class="grafico-wrapper" style="margin: 12px auto 24px auto;">
+      <div class="grafico-wrapper">
         <canvas id="graficoPizza"></canvas>
       </div>
 
-      <!-- tabela de respostas -->
       <div class="table-wrapper">
         <table class="survey-table">
           <thead>
@@ -111,7 +182,7 @@ function analisar() {
     </div>
   `;
 
-  // cria o gráfico de pizza (pequeno e centralizado)
+  // gráfico individual
   new Chart(document.getElementById("graficoPizza"), {
     type: "pie",
     data: {
@@ -137,6 +208,15 @@ function analisar() {
   });
 }
 
+
+// =========================
+/* MOSTRAR GRUPO
+   - Pede senha
+   - Busca todos do Firestore
+   - Calcula média de satisfação
+   - Mostra gráfico + cada pessoa com suas respostas
+*/
+// =========================
 function mostrarGrupo() {
   const senha = prompt("Digite a senha para acessar os dados do grupo:");
   if (senha !== "1234") {
@@ -150,29 +230,32 @@ function mostrarGrupo() {
       return;
     }
 
-    let totalPro = 0, totalContra = 0, participantes = 0;
+    let totalPro = 0;
+    let totalContra = 0;
+    let participantes = 0;
 
-    // vamos usar o primeiro doc pra saber quais perguntas existem
+    // pega as chaves das perguntas a partir do primeiro registro
     const respostasObjExemplo = snapshot.docs[0].data().respostas;
-
     const perguntasKeys = Object
       .keys(respostasObjExemplo)
       .filter(k => k !== 'sugestao')
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
       .concat('sugestao');
 
-    // gerar bloco de cada participante com tabela Pergunta | Resposta
+    // blocosParticipantes terá um bloco (tabela) por pessoa
     let blocosParticipantes = "";
 
     snapshot.forEach(doc => {
       const { nome, respostas } = doc.data();
-      let pro = 0, contra = 0;
+      let pro = 0;
+      let contra = 0;
 
-      // monta tabela vertical dessa pessoa
+      // constrói linhas "Pergunta | Resposta" dessa pessoa
       let linhasPessoa = "";
       perguntasKeys.forEach(key => {
         const resp = respostas[key];
         if (!resp) return;
+
         linhasPessoa += `
           <tr>
             <td class="pergunta-col">${resp.pergunta}</td>
@@ -184,6 +267,7 @@ function mostrarGrupo() {
         if (resp.valor === "contra") contra++;
       });
 
+      // calcula % individual dessa pessoa e acumula na média
       const totalLocal = pro + contra;
       if (totalLocal > 0) {
         totalPro += Math.round((pro * 100) / totalLocal);
@@ -191,7 +275,6 @@ function mostrarGrupo() {
         participantes++;
       }
 
-      // bloco dessa pessoa
       blocosParticipantes += `
         <div style="margin-bottom:24px;">
           <div style="font-weight:600; font-size:0.95rem; margin-bottom:8px; color:#111;">
@@ -214,12 +297,11 @@ function mostrarGrupo() {
       `;
     });
 
-    // média geral do grupo
+    // calcula a média geral do grupo
     const mediaPro = participantes > 0 ? Math.round(totalPro / participantes) : 0;
     const mediaContra = 100 - mediaPro;
 
-    // *** AQUI VEM A MUDANÇA IMPORTANTE ***
-    // gráfico agora vai sozinho lá em cima, e os blocos vêm DEPOIS
+    // renderiza painel do grupo
     document.getElementById("result").innerHTML = `
       <div class="dashboard-card">
         <h2>Análise do Grupo</h2>
@@ -227,17 +309,15 @@ function mostrarGrupo() {
           Média do grupo: ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
         </div>
 
-        <!-- gráfico AGORA FICA EM CIMA -->
-        <div class="grafico-wrapper" style="margin: 12px auto 24px auto;">
+        <div class="grafico-wrapper">
           <canvas id="graficoGrupo"></canvas>
         </div>
 
-        <!-- depois do gráfico, um bloco por participante -->
         ${blocosParticipantes}
       </div>
     `;
 
-    // cria gráfico pizza da média do grupo
+    // gráfico da média do grupo
     new Chart(document.getElementById("graficoGrupo"), {
       type: "pie",
       data: {
@@ -265,6 +345,9 @@ function mostrarGrupo() {
 }
 
 
+// =========================
+// LIMPAR DADOS DO FIRESTORE
+// =========================
 function limparDados() {
   if (!confirm("Tem certeza que deseja apagar todos os dados?")) return;
 
