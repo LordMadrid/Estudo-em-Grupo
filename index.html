@@ -13,341 +13,191 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <!-- Estilos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap">
+
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Aptos+Display:wght@400;700&display=swap');
+    body {
+      margin: 0;
+      font-family: 'Aptos Display', sans-serif;
+      background: #007a2a; /* verde liso */
+      color: #000;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
 
-  body {
-    margin: 0;
-    font-family: 'Aptos Display', sans-serif;
-    background: #007a2a; /* verde liso */
-    color: #000;
-    overflow-x: hidden;
-    min-height: 100vh;
-    position: relative;
+    #lobbyWrapper {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-    /* centralizar o lobby no meio da tela */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    .card-branco {
+      width: 100%;
+      background: #ffffffdd;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.25);
+      padding: 20px;
+      color: #000;
+    }
 
-    padding: 40px 16px;
-  }
+    .lobby-title {
+      text-align: center;
+      font-size: 2em;
+      margin: 0 0 16px;
+    }
 
-  canvas.particle {
-    position: fixed;
-    top: 0; left: 0;
-    z-index: -1;
-    width: 100vw;
-    height: 100vh;
-  }
+    .lobby-desc {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-  /* wrapper do lobby (pra conseguir esconder e mostrar depois) */
-  #lobbyWrapper {
-    width: 100%;
-    max-width: 700px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+    .main-btn {
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      min-width: 230px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      transition: 0.2s;
+    }
 
-  /* cartão do lobby */
-  .card-branco {
-    width: 100%;
-    background: #ffffffdd;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.25);
-    padding: 20px;
-    color: #000;
-  }
+    .main-btn.azul { background-color: #2980b9; }
+    .main-btn.azul:hover { background-color: #1c5980; }
 
-  .lobby-card {
-    text-align: left;
-  }
+    .main-btn.cinza { background-color: #555; }
+    .main-btn.cinza:hover { background-color: #333; }
 
-  .lobby-title {
-    text-align: center;
-    font-size: 2em;
-    color: #000;
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
+    .main-btn.vermelho { background-color: #e74c3c; }
+    .main-btn.vermelho:hover { background-color: #c0392b; }
 
-  .lobby-desc {
-    font-size: 1rem;
-    color: #000;
-    line-height: 1.4;
-    margin-bottom: 20px;
-  }
+    .main-btn.ativo {
+      filter: brightness(0.85);
+      transform: scale(0.97);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.3) inset;
+    }
 
-  .lobby-btns {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
+    .lobby-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
 
-  .lobby-label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-    color: #000;
-  }
+    .lobby-input {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+      background-color: #fff;
+    }
 
-  .lobby-input {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-family: inherit;
-    background-color: #fff;
-  }
+    #questionarioSection {
+      max-width: 700px;
+      margin: 40px auto;
+      display: none;
+    }
 
-  /* tela do questionário */
-  #questionarioSection {
-    max-width: 700px;
-    margin: 40px auto;
-    display: none; /* começa escondido */
-  }
+    form {
+      background: #ffffffdd;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.25);
+    }
 
-  .questionario-title {
-    text-align: center;
-    font-size: 2.2em;
-    margin-top: 0;
-    color: #fff;
-  }
+    .question { margin-bottom: 20px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
 
-  form {
-    max-width: 700px;
-    margin: auto;
-    background: #ffffffdd;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.25);
-  }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+    }
 
-  .question { margin-bottom: 20px; }
-  label { font-weight: bold; display: block; margin-bottom: 5px; color:#000; }
+    .dashboard-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 30px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+      color: #111;
+    }
 
-  select,
-  input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-family: inherit;
-    background-color: #fff;
-  }
+    .grafico-wrapper {
+      width: 260px;
+      height: 260px;
+      margin: 12px auto 24px;
+    }
 
-  /* botões principais */
-  .main-btn {
-    border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    color: white;
-    min-width: 230px;
-    text-align: center;
-    font-family: inherit;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
 
-  .main-btn.azul { background-color: #2980b9; }
-  .main-btn.azul:hover { background-color: #1c5980; }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
 
-  .main-btn.cinza { background-color: #555; }
-  .main-btn.cinza:hover { background-color: #333; }
+    .suggestions {
+      background: #fffbe6;
+      border: 1px solid #ffdd57;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
 
-  .main-btn.vermelho { background-color: #e74c3c; }
-  .main-btn.vermelho:hover { background-color: #c0392b; }
-
-  /* estado ativo da escolha no lobby */
-  .main-btn.ativo {
-    filter: brightness(0.85);
-    transform: scale(0.97);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.3) inset;
-  }
-
-  /* bloco onde o resultado aparece */
-  #result {
-    max-width: 850px;
-    margin: 40px auto 60px auto;
-  }
-
-  /* cartão branco do dashboard */
-  .dashboard-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 24px 24px 32px;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-    color: #111;
-    overflow-x: auto;
-  }
-
-  .dashboard-card h2 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: #111;
-    text-align: left;
-  }
-
-  .resumo-percentual {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #222;
-    margin-bottom: 12px;
-  }
-
-  /* gráfico pequeno */
-  .grafico-wrapper {
-    width: 260px;
-    height: 260px;
-    position: relative;
-    margin: 12px auto 24px auto;
-    background: #fff;
-  }
-
-  /* tabela tipo planilha */
-  .table-wrapper {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-
-  .survey-table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    min-width: 260px;
-    font-size: 0.9rem;
-    color: #222;
-  }
-
-  .survey-table th,
-  .survey-table td {
-    text-align: left;
-    padding: 10px 12px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    vertical-align: top;
-  }
-
-  .survey-table th.pergunta-col,
-  .survey-table td.pergunta-col {
-    font-weight: 600;
-    background-color: #f9f9f9;
-    width: 55%;
-    max-width: 55%;
-    white-space: normal;
-  }
-
-  .survey-table td.resposta-col {
-    white-space: normal;
-    font-weight: 500;
-  }
-
-  .survey-table thead th {
-    background-color: #f9f9f9;
-    color: #111;
-    border: 1px solid #ddd;
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-
-  .survey-table tr:first-child th:first-child { border-top-left-radius: 10px; }
-  .survey-table tr:first-child th:last-child { border-top-right-radius: 10px; }
-  .survey-table tr:last-child td:first-child { border-bottom-left-radius: 10px; }
-  .survey-table tr:last-child td:last-child { border-bottom-right-radius: 10px; }
-
-  .suggestions {
-    margin-top: 24px;
-    padding: 15px 16px;
-    background: #fffbe6;
-    border: 1px solid #ffdd57;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-
-  .suggestions strong { font-weight: 600; }
-  .suggestions ul {
-    margin: 8px 0 0 16px;
-    padding: 0;
-  }
-  .suggestions li { margin-bottom: 6px; }
+    #result {
+      margin-top: 30px;
+    }
   </style>
-
-  <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- fundo (se quiser animar depois, mantém o canvas aqui) -->
-  <canvas class="particle" id="bgCanvas"></canvas>
-
-  <!-- 1) Lobby inicial -->
   <section id="lobbyWrapper">
-    <section id="lobbySection" class="card-branco lobby-card">
-      <h1 class="lobby-title">
-        Avaliação Baja
-      </h1>
-
-      <p class="lobby-desc">
-        Antes de começar, você prefere se identificar ou responder de forma anônima?
-      </p>
+    <section id="lobbySection" class="card-branco">
+      <h1 class="lobby-title">Avaliação Baja</h1>
+      <p class="lobby-desc">Antes de começar, você prefere se identificar ou responder de forma anônima?</p>
 
       <div class="lobby-btns">
-        <button type="button"
-                class="escolhaIdentBtn main-btn azul"
-                id="btnIdentificar"
-                onclick="definirIdentificacao(true)">
-          Quero me identificar
-        </button>
-
-        <button type="button"
-                class="escolhaIdentBtn main-btn cinza"
-                id="btnAnonimo"
-                onclick="definirIdentificacao(false)">
-          Quero ficar anônimo
-        </button>
+        <button type="button" class="main-btn azul" id="btnIdentificar" onclick="definirIdentificacao(true)">Quero me identificar</button>
+        <button type="button" class="main-btn cinza" id="btnAnonimo" onclick="definirIdentificacao(false)">Quero ficar anônimo</button>
       </div>
 
       <div id="nomeWrapper" style="display:none; margin-top:10px;">
-        <label class="lobby-label">
-          Seu nome:
-        </label>
-        <input type="text"
-               id="lobbyNomeInput"
-               placeholder="Digite seu nome"
-               class="lobby-input"
-               oninput="atualizarDisponibilidadeEntrada()" />
+        <label>Seu nome:</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input type="text" id="lobbyNomeInput" placeholder="Digite seu nome" class="lobby-input" oninput="atualizarDisponibilidadeEntrada()" />
+          <button type="button" class="main-btn azul" id="btnConfirmarNome" style="min-width:auto; padding:8px 16px; font-size:14px;" onclick="confirmarNome()">OK</button>
+        </div>
+        <small id="nomeAviso" style="color:#000; font-size:0.8rem; margin-top:6px; display:block;">Digite seu nome e clique em OK.</small>
       </div>
 
       <div style="text-align:center; margin-top:24px;">
-        <button type="button"
-                class="main-btn azul"
-                id="btnComecar"
-                style="display:none;"
-                onclick="entrarNoQuestionario()">
-          Começar questionário
-        </button>
+        <button type="button" class="main-btn azul" id="btnComecar" style="display:none;" onclick="entrarNoQuestionario()">Começar questionário</button>
       </div>
     </section>
   </section>
 
-  <!-- 2) Questionário -->
   <section id="questionarioSection">
-    <h1 class="questionario-title">Avaliação Baja</h1>
+    <h1 style="text-align:center; color:#fff;">Avaliação Baja</h1>
 
     <div style="text-align:center; margin-bottom:16px;">
-      <button type="button"
-              class="main-btn cinza"
-              onclick="voltarLobby()">
-        Voltar
-      </button>
+      <button type="button" class="main-btn cinza" onclick="voltarLobby()">Voltar</button>
     </div>
 
     <form id="reflectionForm">
@@ -358,7 +208,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -369,7 +218,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -380,7 +228,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -391,7 +238,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -402,7 +248,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -413,7 +258,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -424,7 +268,6 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
@@ -435,20 +278,17 @@
           <option value="pro">Satisfeito</option>
           <option value="contra">Pouco satisfeito</option>
           <option value="neutro">Indiferente</option>
-          <option value="nenhum">Nenhum / Prefiro não responder</option>
         </select>
       </div>
 
       <div class="question">
-        <label>Deixe sua sugestão, algo que você acha que pode melhorar ou que sente falta dentro do Baja:</label>
+        <label>Deixe sua sugestão:</label>
         <input type="text" id="sugestaoInput" placeholder="Digite sua sugestão aqui...">
       </div>
 
-      <div style="text-align:center; margin-top:30px; display:flex; flex-direction:column; gap:12px; align-items:center;">
+      <div style="text-align:center; display:flex; flex-direction:column; gap:12px; align-items:center;">
         <button type="button" class="main-btn azul" onclick="analisar()">Analisar minhas respostas</button>
-
         <button type="button" class="main-btn azul" onclick="mostrarGrupo()">Mostrar Grupo (senha)</button>
-
         <button type="button" class="main-btn vermelho" onclick="limparDadosProtegido()">Limpar Dados (senha)</button>
       </div>
     </form>
