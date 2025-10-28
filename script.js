@@ -109,18 +109,25 @@ function confirmarNome() {
 
 
 function entrarNoQuestionario() {
+  // tem que ter escolhido uma opção
   if (querSeIdentificar === null) {
     alert("Escolha se você quer se identificar ou responder como anônimo.");
     return;
   }
 
-  if (querSeIdentificar === true && document.getElementById("lobbyNomeInput").value.trim() === "") {
+  // se escolheu se identificar, precisa confirmar nome antes
+  if (
+    querSeIdentificar === true &&
+    document.getElementById("lobbyNomeInput").value.trim() === ""
+  ) {
     alert("Por favor, confirme seu nome clicando em OK.");
     return;
   }
 
+  // troca de tela
   document.getElementById("lobbyWrapper").style.display = "none";
   document.getElementById("questionarioSection").style.display = "block";
+
   window.scrollTo(0, 0);
 }
 
