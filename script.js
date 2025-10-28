@@ -1,6 +1,16 @@
 // ==============================
 // CONFIGURAÇÃO GERAL
 // ==============================
+const perguntasOrdenadas = [
+  { id: "q1", texto: "1. Como você se sente com o projeto?" },
+  { id: "q2", texto: "2. Como você considera sua participação na equipe?" },
+  { id: "q3", texto: "3. Analisando de forma geral, o que você acha da frequência das reuniões?" },
+  { id: "q4", texto: "4. Como você se sente referente à liderança?" },
+  { id: "q5", texto: "5. Como você avalia a comunicação entre os membros da equipe?" },
+  { id: "q6", texto: "6. Você sente que suas ideias são ouvidas e consideradas?" },
+  { id: "q7", texto: "7. O ambiente de trabalho é positivo e acolhedor?" },
+  { id: "q8", texto: "8. Você acredita que está se desenvolvendo profissionalmente neste projeto?" }
+];
 
 let nomeDoParticipante = "Anônimo";
 let querSeIdentificar = null;
