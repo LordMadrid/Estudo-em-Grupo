@@ -154,13 +154,13 @@
       aspect-ratio: 1 / 1;
       margin: 16px auto 24px;
       display: flex;
-      justify-content; center;
+      justify-content: center;
       align-items: center;
     }
 
-    .grafico-wraper canvas {
-      width: 100%
-        height: 100%
+    .grafico-wrapper canvas {
+      width: 100% !important;
+        height: 100% !important;
     }
 
     table {
@@ -331,7 +331,17 @@
       </div>
     </form>
 
-    <div id="result"></div>
+   <div id="result">
+  <h2 style="text-align:center; color:#fff;">Resultado Individual</h2>
+
+  <div class="grafico-wrapper">
+    <canvas id="graficoIndividual"></canvas>
+  </div>
+
+  <table id="tabelaIndividual">
+    <!-- as linhas e respostas individuais aparecem aqui pelo JS -->
+  </table>
+</div>
   </section>
 
   <!-- link para o JavaScript -->
