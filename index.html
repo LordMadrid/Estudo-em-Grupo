@@ -180,20 +180,50 @@
         <button type="button" class="main-btn cinza" id="btnAnonimo" onclick="definirIdentificacao(false)">Quero ficar anônimo</button>
       </div>
 
-      <div id="nomeWrapper" style="display:none; margin-top:10px;">
-        <label>Seu nome:</label>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <input type="text" id="lobbyNomeInput" placeholder="Digite seu nome" class="lobby-input" oninput="atualizarDisponibilidadeEntrada()" />
-          <button type="button" class="main-btn azul" id="btnConfirmarNome" style="min-width:auto; padding:8px 16px; font-size:14px;" onclick="confirmarNome()">OK</button>
-        </div>
-        <small id="nomeAviso" style="color:#000; font-size:0.8rem; margin-top:6px; display:block;">Digite seu nome e clique em OK.</small>
-      </div>
+     <!-- Campo de nome + botão OK -->
+<div id="nomeWrapper" style="display:none; margin-top:10px;">
+  <label>Seu nome:</label>
 
-      <div style="text-align:center; margin-top:24px;">
-        <button type="button" class="main-btn azul" id="btnComecar" style="display:none;" onclick="entrarNoQuestionario()">Começar questionário</button>
-      </div>
-    </section>
-  </section>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <input
+      type="text"
+      id="lobbyNomeInput"
+      placeholder="Digite seu nome"
+      class="lobby-input"
+      oninput="atualizarDisponibilidadeEntrada()"
+    />
+
+    <button
+      type="button"
+      class="main-btn azul"
+      id="btnConfirmarNome"
+      style="min-width:auto; padding:8px 16px; font-size:14px;"
+      onclick="confirmarNome()"
+    >
+      OK
+    </button>
+  </div>
+
+  <small
+    id="nomeAviso"
+    style="color:#000; font-size:0.8rem; margin-top:6px; display:block;"
+  >
+    Digite seu nome e clique em OK.
+  </small>
+</div>
+
+<!-- Botão pra ir pro questionário -->
+<div style="text-align:center; margin-top:24px;">
+  <button
+    type="button"
+    class="main-btn azul"
+    id="btnComecar"
+    style="display:none;"
+    onclick="entrarNoQuestionario()"
+  >
+    Começar questionário
+  </button>
+</div>
 
   <!-- QUESTIONÁRIO -->
   <section id="questionarioSection">
