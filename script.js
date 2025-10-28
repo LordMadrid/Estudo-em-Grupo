@@ -1,6 +1,11 @@
+// ==============================
+// CONFIGURAÇÃO GERAL
+// ==============================
+
 let nomeDoParticipante = "Anônimo";
 let querSeIdentificar = null;
 
+// Configuração Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAGCBI060-xyJOhmIqQETLGp6CAGuCIwQU",
   authDomain: "estudo-de-caso-4d8cb.firebaseapp.com",
@@ -12,6 +17,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+
+// ==============================
+// FUNÇÕES DE IDENTIFICAÇÃO
+// ==============================
+
 function definirIdentificacao(valor) {
   querSeIdentificar = valor;
 
@@ -22,6 +32,7 @@ function definirIdentificacao(valor) {
   const btnAnonimo = document.getElementById("btnAnonimo");
   const aviso = document.getElementById("nomeAviso");
 
+  // Reseta estilo dos botões
   btnIdentificar.classList.remove("ativo");
   btnAnonimo.classList.remove("ativo");
 
@@ -32,12 +43,10 @@ function definirIdentificacao(valor) {
     nomeInput.value = "";
     aviso.textContent = "Digite seu nome e clique em OK.";
     aviso.style.color = "#000";
-
     btnComecar.style.display = "none";
   } else {
     nomeWrapper.style.display = "none";
     btnAnonimo.classList.add("ativo");
-
     nomeDoParticipante = "Anônimo";
     btnComecar.style.display = "inline-block";
   }
@@ -77,41 +86,42 @@ function confirmarNome() {
   btnComecar.style.display = "inline-block";
 }
 
+
+// ==============================
+// ENTRAR / VOLTAR
+// ==============================
+
 function entrarNoQuestionario() {
   if (querSeIdentificar === null) {
     alert("Escolha se você quer se identificar ou responder como anônimo.");
     return;
   }
 
-  if (
-    querSeIdentificar === true &&
-    document.getElementById("lobbyNomeInput").value.trim() === ""
-  ) {
+  if (querSeIdentificar === true && document.getElementById("lobbyNomeInput").value.trim() === "") {
     alert("Por favor, confirme seu nome clicando em OK.");
     return;
   }
 
   document.getElementById("lobbyWrapper").style.display = "none";
   document.getElementById("questionarioSection").style.display = "block";
-
   window.scrollTo(0, 0);
 }
 
 function voltarLobby() {
   document.getElementById("questionarioSection").style.display = "none";
   document.getElementById("lobbyWrapper").style.display = "flex";
-
   const resultDiv = document.getElementById("result");
-  if (resultDiv) {
-    resultDiv.innerHTML = "";
-  }
-
+  if (resultDiv) resultDiv.innerHTML = "";
   window.scrollTo(0, 0);
 }
 
+
+// ==============================
+// VALIDAÇÃO DO FORMULÁRIO
+// ==============================
+
 function validarFormulario() {
   const selects = [...document.querySelectorAll("#reflectionForm select[name^='q']")];
-
   for (const sel of selects) {
     if (sel.value.trim() === "") {
       alert("Por favor, responda todas as perguntas antes de continuar.");
@@ -119,9 +129,13 @@ function validarFormulario() {
       return false;
     }
   }
-
   return true;
 }
+
+
+// ==============================
+// ANÁLISE INDIVIDUAL
+// ==============================
 
 function analisar() {
   if (!validarFormulario()) return;
@@ -139,12 +153,7 @@ function analisar() {
     const question = el.previousElementSibling.textContent;
     const nameAttr = el.getAttribute("name");
 
-    respostas[nameAttr] = {
-      pergunta: question,
-      resposta: text,
-      valor: val
-    };
-
+    respostas[nameAttr] = { pergunta: question, resposta: text, valor: val };
     if (val === "pro") pro++;
     if (val === "contra") {
       contrasLista.push({ pergunta: question, resposta: text });
@@ -158,6 +167,7 @@ function analisar() {
     valor: "neutro"
   };
 
+  // Salva no Firestore
   db.collection("respostas").add({
     nome: nomeDoParticipante,
     data: new Date().toISOString(),
@@ -171,10 +181,10 @@ function analisar() {
   const linhasTabela = Object.values(respostas)
     .map(
       (item) => `
-    <tr>
-      <td>${item.pergunta}</td>
-      <td>${item.resposta}</td>
-    </tr>`
+      <tr>
+        <td>${item.pergunta}</td>
+        <td>${item.resposta}</td>
+      </tr>`
     )
     .join("");
 
@@ -200,15 +210,8 @@ function analisar() {
         ${pctPro}% Satisfeito • ${pctContra}% Insatisfeito<br/>
         Participante: ${nomeDoParticipante}
       </div>
-
-      <div class="grafico-wrapper">
-        <canvas id="graficoPizza"></canvas>
-      </div>
-
-      <table>
-        ${linhasTabela}
-      </table>
-
+      <div class="grafico-wrapper"><canvas id="graficoPizza"></canvas></div>
+      <table>${linhasTabela}</table>
       ${sugestoesHTML}
     </div>
   `;
@@ -217,19 +220,16 @@ function analisar() {
     type: "pie",
     data: {
       labels: ["Satisfeito", "Insatisfeito"],
-      datasets: [
-        {
-          data: [pctPro, pctContra],
-          backgroundColor: ["#2ecc71", "#e74c3c"]
-        }
-      ]
+      datasets: [{ data: [pctPro, pctContra], backgroundColor: ["#2ecc71", "#e74c3c"] }]
     },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false
-    }
+    options: { responsive: false, maintainAspectRatio: false }
   });
 }
+
+
+// ==============================
+// ANÁLISE DO GRUPO
+// ==============================
 
 function mostrarGrupo() {
   const senha = prompt("Digite a senha para acessar os dados do grupo:");
@@ -282,9 +282,7 @@ function mostrarGrupo() {
             <div style="font-weight:600; margin-bottom:8px; color:#111;">
               ${nome}
             </div>
-            <table>
-              ${linhasPessoa}
-            </table>
+            <table>${linhasPessoa}</table>
           </div>
         `;
       });
@@ -295,14 +293,8 @@ function mostrarGrupo() {
       document.getElementById("result").innerHTML = `
         <div class="dashboard-card">
           <h2>Análise do Grupo</h2>
-          <div>
-            ${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito
-          </div>
-
-          <div class="grafico-wrapper">
-            <canvas id="graficoGrupo"></canvas>
-          </div>
-
+          <div>${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito</div>
+          <div class="grafico-wrapper"><canvas id="graficoGrupo"></canvas></div>
           ${blocosParticipantes}
         </div>
       `;
@@ -312,19 +304,18 @@ function mostrarGrupo() {
         data: {
           labels: ["Satisfeito", "Insatisfeito"],
           datasets: [
-            {
-              data: [mediaPro, mediaContra],
-              backgroundColor: ["#2ecc71", "#e74c3c"]
-            }
+            { data: [mediaPro, mediaContra], backgroundColor: ["#2ecc71", "#e74c3c"] }
           ]
         },
-        options: {
-          responsive: false,
-          maintainAspectRatio: false
-        }
+        options: { responsive: false, maintainAspectRatio: false }
       });
     });
 }
+
+
+// ==============================
+// LIMPAR DADOS (SENHA)
+// ==============================
 
 function limparDadosProtegido() {
   const senha = prompt("Digite a senha para APAGAR TODOS os dados:");
