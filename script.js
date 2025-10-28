@@ -22,29 +22,50 @@ const db = firebase.firestore();
 // LOBBY
 // =========================
 function definirIdentificacao(valor) {
+  // valor === true -> identificar / valor === false -> anônimo
   querSeIdentificar = valor;
 
-  const nomeWrapper = document.getElementById("nomeWrapper");
-  const nomeInput = document.getElementById("lobbyNomeInput");
-  const btnComecar = document.getElementById("btnComecar");
-  const btnIdentificar = document.getElementById("btnIdentificar");
-  const btnAnonimo = document.getElementById("btnAnonimo");
-  const aviso = document.getElementById("nomeAviso");
+  const nomeWrapper      = document.getElementById("nomeWrapper");
+  const nomeInput        = document.getElementById("lobbyNomeInput");
+  const btnComecar       = document.getElementById("btnComecar");
+  const btnIdentificar   = document.getElementById("btnIdentificar");
+  const btnAnonimo       = document.getElementById("btnAnonimo");
+  const aviso            = document.getElementById("nomeAviso");
 
+  // limpa estado visual dos dois botões
   btnIdentificar.classList.remove("ativo");
   btnAnonimo.classList.remove("ativo");
 
   if (valor === true) {
+    // modo "quero me identificar"
+
+    // mostra o campo de nome
     nomeWrapper.style.display = "block";
+
+    // botão azul fica marcado como ativo
     btnIdentificar.classList.add("ativo");
+
+    // limpa o campo e reseta mensagem
     nomeInput.value = "";
     aviso.textContent = "Digite seu nome e clique em OK.";
     aviso.style.color = "#000";
+
+    // NÃO deixa começar ainda
     btnComecar.style.display = "none";
+
   } else {
+    // modo "quero ficar anônimo"
+
+    // esconde o campo de nome
     nomeWrapper.style.display = "none";
+
+    // botão cinza fica marcado
     btnAnonimo.classList.add("ativo");
+
+    // define nome como "Anônimo"
     nomeDoParticipante = "Anônimo";
+
+    // libera o botão de começar
     btnComecar.style.display = "inline-block";
   }
 }
@@ -61,23 +82,31 @@ function atualizarDisponibilidadeEntrada() {
 }
 
 function confirmarNome() {
-  const nomeInput = document.getElementById("lobbyNomeInput");
+  const nomeInput  = document.getElementById("lobbyNomeInput");
   const btnComecar = document.getElementById("btnComecar");
-  const aviso = document.getElementById("nomeAviso");
+  const aviso      = document.getElementById("nomeAviso");
+
   const nomeDigitado = nomeInput.value.trim();
 
   if (nomeDigitado === "") {
+    // erro: não digitou nada
     aviso.textContent = "Por favor, insira um nome válido.";
     aviso.style.color = "#e74c3c";
     btnComecar.style.display = "none";
     return;
   }
 
+  // salva o nome
   nomeDoParticipante = nomeDigitado;
+
+  // feedback visual
   aviso.textContent = "Nome confirmado: " + nomeDoParticipante;
   aviso.style.color = "#2ecc71";
+
+  // libera botão pra continuar
   btnComecar.style.display = "inline-block";
 }
+
 
 function entrarNoQuestionario() {
   if (querSeIdentificar === null) {
