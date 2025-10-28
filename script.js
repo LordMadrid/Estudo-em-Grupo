@@ -39,6 +39,7 @@ function definirIdentificacao(valor) {
     btnIdentificar.classList.add("ativo");
     nomeInput.value = "";
     aviso.textContent = "Digite seu nome e clique em OK.";
+    aviso.style.color = "#000";
     btnComecar.style.display = "none";
   } else {
     nomeWrapper.style.display = "none";
@@ -51,7 +52,7 @@ function definirIdentificacao(valor) {
 function atualizarDisponibilidadeEntrada() {
   const nomeInput = document.getElementById("lobbyNomeInput");
   const aviso = document.getElementById("nomeAviso");
-
+  if (!nomeInput) return;
   if (nomeInput.value.trim() === "") {
     aviso.textContent = "Digite seu nome e clique em OK.";
   } else {
@@ -63,7 +64,6 @@ function confirmarNome() {
   const nomeInput = document.getElementById("lobbyNomeInput");
   const btnComecar = document.getElementById("btnComecar");
   const aviso = document.getElementById("nomeAviso");
-
   const nomeDigitado = nomeInput.value.trim();
 
   if (nomeDigitado === "") {
@@ -170,4 +170,106 @@ function analisar() {
   document.getElementById("result").innerHTML = `
     <div class="dashboard-card">
       <h2>Resultado Individual</h2>
-      <div>${pctPro}% S
+      <div>${pctPro}% Satisfeito • ${pctContra}% Insatisfeito<br>Participante: ${nomeDoParticipante}</div>
+      <div class="grafico-wrapper"><canvas id="graficoPizza"></canvas></div>
+      <table>${linhasTabela}</table>
+      ${sugestoesHTML}
+    </div>
+  `;
+
+  new Chart(document.getElementById("graficoPizza"), {
+    type: "pie",
+    data: {
+      labels: ["Satisfeito", "Insatisfeito"],
+      datasets: [{
+        data: [pctPro, pctContra],
+        backgroundColor: ["#2ecc71", "#e74c3c"]
+      }]
+    },
+    options: { responsive: false, maintainAspectRatio: false }
+  });
+}
+
+// =========================
+// GRUPO
+// =========================
+function mostrarGrupo() {
+  const senha = prompt("Digite a senha para acessar os dados do grupo:");
+  if (senha !== "1234") {
+    alert("Senha incorreta.");
+    return;
+  }
+
+  db.collection("respostas").get().then(snapshot => {
+    if (snapshot.empty) {
+      alert("Nenhum dado encontrado.");
+      return;
+    }
+
+    let totalPro = 0, totalContra = 0, participantes = 0;
+    let blocosParticipantes = "";
+
+    snapshot.forEach(doc => {
+      const { nome, respostas } = doc.data();
+      let pro = 0, contra = 0;
+      let linhas = "";
+
+      Object.values(respostas).forEach(r => {
+        linhas += `<tr><td>${r.pergunta}</td><td>${r.resposta}</td></tr>`;
+        if (r.valor === "pro") pro++;
+        if (r.valor === "contra") contra++;
+      });
+
+      const totalLocal = pro + contra;
+      if (totalLocal > 0) {
+        totalPro += Math.round((pro * 100) / totalLocal);
+        totalContra += Math.round((contra * 100) / totalLocal);
+        participantes++;
+      }
+
+      blocosParticipantes += `<div style="margin-bottom:20px;"><strong>${nome}</strong><table>${linhas}</table></div>`;
+    });
+
+    const mediaPro = participantes > 0 ? Math.round(totalPro / participantes) : 0;
+    const mediaContra = 100 - mediaPro;
+
+    document.getElementById("result").innerHTML = `
+      <div class="dashboard-card">
+        <h2>Análise do Grupo</h2>
+        <div>${mediaPro}% Satisfeito • ${mediaContra}% Insatisfeito</div>
+        <div class="grafico-wrapper"><canvas id="graficoGrupo"></canvas></div>
+        ${blocosParticipantes}
+      </div>
+    `;
+
+    new Chart(document.getElementById("graficoGrupo"), {
+      type: "pie",
+      data: {
+        labels: ["Satisfeito", "Insatisfeito"],
+        datasets: [{ data: [mediaPro, mediaContra], backgroundColor: ["#2ecc71", "#e74c3c"] }]
+      },
+      options: { responsive: false, maintainAspectRatio: false }
+    });
+  });
+}
+
+// =========================
+// LIMPAR
+// =========================
+function limparDadosProtegido() {
+  const senha = prompt("Digite a senha para APAGAR TODOS os dados:");
+  if (senha !== "1234") {
+    alert("Senha incorreta.");
+    return;
+  }
+  if (!confirm("Tem certeza que deseja apagar TODOS os dados?")) return;
+
+  db.collection("respostas").get().then(snapshot => {
+    const batch = db.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    return batch.commit();
+  }).then(() => {
+    alert("Todos os dados foram apagados.");
+    document.getElementById("result").innerHTML = "";
+  });
+}
